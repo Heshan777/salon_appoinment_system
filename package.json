@@ -4,9 +4,11 @@
   "description": "Cloud-native microservices salon management system with AI scheduling",
   "private": true,
   "workspaces": [
-    "services/*"
+    "services/*",
+    "web"
   ],
   "scripts": {
+    "dev": "node scripts/dev.js",
     "install:all": "npm install --workspaces",
     "dev:gateway": "npm --workspace=services/api-gateway run dev",
     "dev:auth": "npm --workspace=services/auth-service run dev",

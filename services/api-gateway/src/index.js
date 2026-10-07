@@ -11,9 +11,13 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Security & Logging Middlewares
-app.use(helmet());
+app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors());
-app.use(morgan('combined'));
+app.use(morgan('dev'));
+
+const path = require('path');
+// Serve static frontend assets
+app.use(express.static(path.join(__dirname, '../public')));
 
 // Service Target URLs
 const services = {
@@ -43,13 +47,11 @@ app.get('/health', (req, res) => {
 });
 
 // Configure Reverse Proxy Routes
-const setupProxy = (path, target) => {
+const setupProxy = (target) => {
   return createProxyMiddleware({
     target,
     changeOrigin: true,
-    pathRewrite: {
-      [`^${path}`]: path,
-    },
+    pathRewrite: (path, req) => req.originalUrl,
     onError: (err, req, res) => {
       console.error(`[Gateway Proxy Error] Target: ${target}`, err.message);
       if (!res.headersSent) {
@@ -63,14 +65,22 @@ const setupProxy = (path, target) => {
   });
 };
 
-app.use('/api/auth', setupProxy('/api/auth', services.auth));
-app.use('/api/bookings', setupProxy('/api/bookings', services.booking));
-app.use('/api/catalog', setupProxy('/api/catalog', services.catalog));
-app.use('/api/payments', setupProxy('/api/payments', services.payment));
-app.use('/api/notifications', setupProxy('/api/notifications', services.notification));
-app.use('/api/ai', setupProxy('/api/ai', services.ai));
+app.use('/api/auth', setupProxy(services.auth));
+app.use('/api/bookings', setupProxy(services.booking));
+app.use('/api/catalog', setupProxy(services.catalog));
+app.use('/api/payments', setupProxy(services.payment));
+app.use('/api/notifications', setupProxy(services.notification));
+app.use('/api/ai', setupProxy(services.ai));
 
-// 404 Handler
+// Client SPA fallback
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api') || req.path === '/health') {
+    return next();
+  }
+  res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
+// 404 Handler for unhandled API routes
 app.use((req, res) => {
   res.status(404).json({
     error: 'Not Found',

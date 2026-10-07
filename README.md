@@ -80,6 +80,13 @@ To spin up all microservices and a local MongoDB instance in unified containers:
 docker-compose up --build
 ```
 
+### 5. Run the Web Dashboard
+The responsive Maison salon operations dashboard is available in the `web/` workspace:
+```bash
+npm run dev:web
+```
+Open [http://localhost:5173](http://localhost:5173). Start the API services first so appointments and catalog data are loaded through the API Gateway at `http://localhost:5000`.
+
 ---
 
 ## 📡 API Endpoints Reference
