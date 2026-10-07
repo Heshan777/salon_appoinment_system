@@ -1,0 +1,30 @@
+{
+  "name": "salon-management-system",
+  "version": "1.0.0",
+  "description": "Cloud-native microservices salon management system with AI scheduling",
+  "private": true,
+  "workspaces": [
+    "services/*"
+  ],
+  "scripts": {
+    "install:all": "npm install --workspaces",
+    "dev:gateway": "npm --workspace=services/api-gateway run dev",
+    "dev:auth": "npm --workspace=services/auth-service run dev",
+    "dev:booking": "npm --workspace=services/booking-service run dev",
+    "dev:catalog": "npm --workspace=services/catalog-service run dev",
+    "dev:ai": "npm --workspace=services/ai-assistant-service run dev",
+    "dev:payment": "npm --workspace=services/payment-service run dev",
+    "dev:notification": "npm --workspace=services/notification-service run dev",
+    "test": "echo \"Running microservices tests...\" && exit 0"
+  },
+  "keywords": [
+    "microservices",
+    "salon-management",
+    "gemini",
+    "render",
+    "mongodb",
+    "supabase"
+  ],
+  "author": "",
+  "license": "ISC"
+}
