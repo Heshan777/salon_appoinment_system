@@ -47,3 +47,6 @@ process.on('SIGINT', () => {
   processes.forEach(p => p.kill());
   process.exit();
 });
+
+// Keep parent process alive indefinitely
+setInterval(() => {}, 1000 * 60 * 60);
