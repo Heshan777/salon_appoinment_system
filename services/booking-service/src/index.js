@@ -36,7 +36,7 @@ const fallbackAppointments = [
 ];
 
 // Connect to MongoDB Atlas / Local MongoDB
-mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 3000 })
+mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 5000 })
   .then(() => {
     isMongoConnected = true;
     console.log('[Booking Service] Connected to MongoDB Atlas/Database.');

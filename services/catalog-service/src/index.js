@@ -28,15 +28,44 @@ const fallbackStaff = [
 ];
 
 // Connect to MongoDB
-mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 3000 })
-  .then(() => {
+mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 5000 })
+  .then(async () => {
     isMongoConnected = true;
     console.log('[Catalog Service] Connected to MongoDB Atlas/Database.');
+    await seedCatalogIfEmpty();
   })
   .catch((err) => {
     isMongoConnected = false;
     console.warn(`[Catalog Service] MongoDB not reachable (${err.message}). Using local in-memory dataset.`);
   });
+
+async function seedCatalogIfEmpty() {
+  try {
+    const serviceCount = await ServiceItem.countDocuments();
+    if (serviceCount === 0) {
+      await ServiceItem.insertMany([
+        { name: 'Classic Haircut & Styling', category: 'Hair', durationMinutes: 45, price: 35, description: 'Shampoo, cut and blowdry styling', isActive: true },
+        { name: 'Deluxe Facial Treatment', category: 'Skincare', durationMinutes: 60, price: 75, description: 'Deep cleansing and hydration facial', isActive: true },
+        { name: 'Gel Manicure & Pedicure', category: 'Nails', durationMinutes: 75, price: 60, description: 'Long-lasting gel polish and spa treatment', isActive: true },
+        { name: 'Balayage Color & Highlights', category: 'Hair', durationMinutes: 120, price: 140, description: 'Custom hand-painted highlights and gloss treatment', isActive: true },
+        { name: 'Bridal Haute Coiffure', category: 'Bridal', durationMinutes: 150, price: 210, description: 'Full wedding day hair styling, trial run, and makeup', isActive: true }
+      ]);
+      console.log('[Catalog Service] Seeded default services into MongoDB Atlas.');
+    }
+
+    const staffCount = await StaffMember.countDocuments();
+    if (staffCount === 0) {
+      await StaffMember.insertMany([
+        { name: 'Sarah Jenkins', email: 'sarah@salon.com', specialties: ['Hair', 'Bridal', 'Color'], workingHours: { start: '09:00', end: '17:00', daysOff: ['Sunday'] }, isActive: true },
+        { name: 'David Kim', email: 'david@salon.com', specialties: ['Skincare', 'Massage'], workingHours: { start: '10:00', end: '18:00', daysOff: ['Monday'] }, isActive: true },
+        { name: 'Elena Rostova', email: 'elena@salon.com', specialties: ['Nails', 'Lashes'], workingHours: { start: '09:30', end: '17:30', daysOff: [] }, isActive: true }
+      ]);
+      console.log('[Catalog Service] Seeded default staff into MongoDB Atlas.');
+    }
+  } catch (err) {
+    console.warn('[Catalog Service] Auto-seed note:', err.message);
+  }
+}
 
 // Health check
 app.get('/api/catalog/health', (req, res) => {
