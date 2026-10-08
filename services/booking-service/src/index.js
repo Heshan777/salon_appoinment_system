@@ -231,6 +231,26 @@ app.patch('/api/bookings/:id/status', async (req, res) => {
   }
 });
 
+// Cancel / Delete appointment
+app.delete('/api/bookings/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    if (isMongoConnected) {
+      const deleted = await Appointment.findByIdAndDelete(id);
+      if (!deleted) return res.status(404).json({ error: 'Appointment not found' });
+      return res.json({ message: 'Appointment deleted successfully', booking: deleted });
+    }
+
+    const idx = fallbackAppointments.findIndex(b => b._id === id);
+    if (idx === -1) return res.status(404).json({ error: 'Appointment not found' });
+    const removed = fallbackAppointments.splice(idx, 1)[0];
+    res.json({ message: 'Appointment deleted successfully (in-memory)', booking: removed });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`[Booking Service] Running on port ${PORT}`);
 });

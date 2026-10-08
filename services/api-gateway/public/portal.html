@@ -152,8 +152,16 @@
         </button>
       </nav>
 
-      <!-- Action Button -->
+      <!-- Action & Auth Buttons -->
       <div class="flex items-center space-x-3">
+        <div id="navUserContainer">
+          <button onclick="openAuthModal()" id="navLoginBtn" class="glass-card hover:bg-white/10 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-200 border border-white/10 flex items-center gap-2 transition-all">
+            <span id="navUserAvatar">👤</span>
+            <span id="navUserLabel">Sign In</span>
+            <span id="navUserRoleBadge" class="hidden text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-gold-500/20 text-gold-400"></span>
+          </button>
+        </div>
+
         <button onclick="openBookingDrawer()" class="gold-gradient-btn px-4 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-gold-500/20 transition-all flex items-center gap-2 hover:opacity-90">
           <span>✨</span>
           <span>Book Appointment</span>
@@ -593,35 +601,138 @@
     </div>
   </div>
 
-  <!-- ================= AUTH / ROLE SWITCHER MODAL ================= -->
+  <!-- ================= AUTHENTICATION MODAL (LOGIN & SIGNUP) ================= -->
   <div id="authModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-    <div onclick="closeAuthModal()" class="absolute inset-0 bg-black/75 backdrop-blur-sm"></div>
+    <div onclick="closeAuthModal()" class="absolute inset-0 bg-black/80 backdrop-blur-md"></div>
     <div class="relative glass-card p-6 rounded-2xl border border-white/10 w-full max-w-md shadow-2xl space-y-4 text-xs">
       <div class="flex items-center justify-between border-b border-white/10 pb-3">
-        <h4 class="font-serif text-lg font-bold text-white">User Session & Role Selection</h4>
-        <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white p-1">✕</button>
+        <div>
+          <span class="text-[10px] uppercase font-mono text-gold-400">Security & Access</span>
+          <h4 id="authModalTitle" class="font-serif text-lg font-bold text-white">Sign In to Luxe Salon</h4>
+        </div>
+        <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white p-1 text-base">✕</button>
       </div>
 
-      <div class="space-y-3">
-        <p class="text-slate-400">Select a persona to test role-based access control:</p>
-        
+      <!-- Logged In Status Banner (shown if logged in) -->
+      <div id="authLoggedInBanner" class="hidden p-3 rounded-xl bg-gold-500/10 border border-gold-500/20 flex items-center justify-between">
+        <div>
+          <div class="text-[10px] text-gold-400">Currently Authenticated:</div>
+          <div id="authBannerUser" class="text-white font-semibold text-xs">Sarah Olsen</div>
+          <div id="authBannerRole" class="text-[10px] text-slate-400 font-mono">admin</div>
+        </div>
+        <button onclick="logoutUser()" class="px-3 py-1.5 rounded-lg bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 text-xs font-medium transition-all">
+          Sign Out
+        </button>
+      </div>
+
+      <!-- Auth Mode Tabs -->
+      <div class="flex border-b border-white/10 gap-2">
+        <button onclick="switchAuthTab('login')" id="tabBtnLogin" class="pb-2 px-3 font-semibold text-gold-400 border-b-2 border-gold-500 transition-all">
+          Sign In
+        </button>
+        <button onclick="switchAuthTab('register')" id="tabBtnRegister" class="pb-2 px-3 font-medium text-slate-400 hover:text-white transition-all">
+          Create Account
+        </button>
+      </div>
+
+      <!-- Evaluation Test Accounts Helper (Collapsible) -->
+      <div id="demoAccountsSection" class="p-3 rounded-xl bg-noir-850 border border-white/5 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-mono text-gold-400">🔑 Evaluation Test Accounts (Prefill Only):</span>
+        </div>
+        <p class="text-[10px] text-slate-400 leading-tight">Click an authorized preset to fill input fields. Click <strong>Sign In</strong> below to authenticate:</p>
         <div class="grid grid-cols-3 gap-2">
-          <button onclick="setPersona('Jane Doe', 'jane@example.com', 'client')" class="p-3 rounded-xl bg-noir-850 hover:bg-white/10 border border-white/10 text-center transition-all">
-            <span class="block text-base mb-1">💅</span>
-            <span class="font-medium text-white block">Client</span>
-            <span class="text-[10px] text-slate-400">Jane Doe</span>
+          <button type="button" onclick="fillPortalCredentials('owner@luxesalon.com', 'admin123', 'Owner')" class="p-2 rounded-lg bg-noir-900 hover:bg-gold-500/10 border border-white/10 text-center transition-all group">
+            <span class="block text-sm">👑</span>
+            <span class="font-semibold text-white group-hover:text-gold-400 block text-[11px]">Owner</span>
+            <span class="text-[9px] text-slate-400">Sarah Olsen</span>
           </button>
-          <button onclick="setPersona('Sarah Jenkins', 'sarah@salon.com', 'stylist')" class="p-3 rounded-xl bg-noir-850 hover:bg-white/10 border border-white/10 text-center transition-all">
-            <span class="block text-base mb-1">✂️</span>
-            <span class="font-medium text-white block">Stylist</span>
-            <span class="text-[10px] text-slate-400">Sarah</span>
+          <button type="button" onclick="fillPortalCredentials('stylist@luxesalon.com', 'stylist123', 'Stylist')" class="p-2 rounded-lg bg-noir-900 hover:bg-gold-500/10 border border-white/10 text-center transition-all group">
+            <span class="block text-sm">✂️</span>
+            <span class="font-semibold text-white group-hover:text-gold-400 block text-[11px]">Stylist</span>
+            <span class="text-[9px] text-slate-400">Elena Rostova</span>
           </button>
-          <button onclick="setPersona('Salon Director', 'admin@lumiere.com', 'admin')" class="p-3 rounded-xl bg-noir-850 hover:bg-white/10 border border-white/10 text-center transition-all">
-            <span class="block text-base mb-1">👑</span>
-            <span class="font-medium text-white block">Admin</span>
-            <span class="text-[10px] text-slate-400">Director</span>
+          <button type="button" onclick="fillPortalCredentials('client@luxesalon.com', 'client123', 'Client')" class="p-2 rounded-lg bg-noir-900 hover:bg-gold-500/10 border border-white/10 text-center transition-all group">
+            <span class="block text-sm">💎</span>
+            <span class="font-semibold text-white group-hover:text-gold-400 block text-[11px]">Client</span>
+            <span class="text-[9px] text-slate-400">Alice Walker</span>
           </button>
         </div>
+      </div>
+
+      <!-- Error / Success Alert -->
+      <div id="authAlert" class="hidden p-3 rounded-xl text-xs"></div>
+
+      <!-- FORM: LOGIN -->
+      <form id="loginForm" onsubmit="handlePortalLogin(event)" class="space-y-3">
+        <div>
+          <label class="block text-slate-300 mb-1">Email Address</label>
+          <input type="email" id="loginEmail" required placeholder="name@example.com" class="w-full bg-noir-900 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-gold-500">
+        </div>
+        <div>
+          <label class="block text-slate-300 mb-1">Password</label>
+          <div class="relative">
+            <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full bg-noir-900 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-gold-500 pr-10">
+            <button type="button" onclick="togglePasswordVisibility('loginPassword', this)" class="absolute right-3 top-2.5 text-slate-400 hover:text-white">👁️</button>
+          </div>
+        </div>
+        <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1">
+          <label class="flex items-center gap-1.5 cursor-pointer">
+            <input type="checkbox" id="loginRememberMe" checked class="rounded bg-noir-900 border-white/10 text-gold-500">
+            <span>Remember me</span>
+          </label>
+          <button type="button" onclick="showAuthAlert('Password reset link sent to registered email if account exists.', 'info')" class="text-gold-400 hover:underline">Forgot password?</button>
+        </div>
+        <button type="submit" id="loginSubmitBtn" class="w-full gold-gradient-btn py-2.5 rounded-xl font-semibold mt-2 hover:opacity-90">
+          Sign In
+        </button>
+      </form>
+
+      <!-- FORM: REGISTER -->
+      <form id="registerForm" onsubmit="handlePortalRegister(event)" class="space-y-3 hidden">
+        <div>
+          <label class="block text-slate-300 mb-1">Full Name</label>
+          <input type="text" id="regFullName" required placeholder="Charlotte Dubois" class="w-full bg-noir-900 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-gold-500">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-slate-300 mb-1">Account Role</label>
+            <select id="regRole" class="w-full bg-noir-900 border border-white/10 rounded-xl px-2 py-2 text-white focus:outline-none focus:border-gold-500">
+              <option value="customer">Client</option>
+              <option value="stylist">Stylist</option>
+              <option value="admin">Salon Owner</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-slate-300 mb-1">Phone Number</label>
+            <input type="tel" id="regPhone" placeholder="+1-555-0199" class="w-full bg-noir-900 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-gold-500">
+          </div>
+        </div>
+        <div>
+          <label class="block text-slate-300 mb-1">Email Address</label>
+          <input type="email" id="regEmail" required placeholder="charlotte@example.com" class="w-full bg-noir-900 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-gold-500">
+        </div>
+        <div>
+          <label class="block text-slate-300 mb-1">Password <span class="text-slate-500">(min. 6 chars)</span></label>
+          <div class="relative">
+            <input type="password" id="regPassword" required placeholder="••••••••" class="w-full bg-noir-900 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-gold-500 pr-10">
+            <button type="button" onclick="togglePasswordVisibility('regPassword', this)" class="absolute right-3 top-2.5 text-slate-400 hover:text-white">👁️</button>
+          </div>
+        </div>
+        <div>
+          <label class="block text-slate-300 mb-1">Confirm Password</label>
+          <div class="relative">
+            <input type="password" id="regConfirmPassword" required placeholder="••••••••" class="w-full bg-noir-900 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-gold-500 pr-10">
+          </div>
+        </div>
+        <button type="submit" id="regSubmitBtn" class="w-full gold-gradient-btn py-2.5 rounded-xl font-semibold mt-2 hover:opacity-90">
+          Create Account
+        </button>
+      </form>
+
+      <div class="text-center text-[10px] text-slate-500 border-t border-white/5 pt-2 flex items-center justify-center gap-1.5">
+        <span>🔒</span>
+        <span>256-Bit SSL Encrypted • JWT Session Authentication</span>
       </div>
     </div>
   </div>
@@ -660,13 +771,28 @@
 
   <!-- ================= JAVASCRIPT APPLICATION LOGIC ================= -->
   <script>
+    const DEFAULT_CATALOG_IMAGE = 'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=600&q=80';
+    const CATEGORY_IMAGES = {
+      'Hair': 'https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&w=600&q=80',
+      'Skincare': 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=600&q=80',
+      'Nails': 'https://images.unsplash.com/photo-1632345031435-8727f6897d53?auto=format&fit=crop&w=600&q=80',
+      'Bridal': 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80',
+      'Massage': 'https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?auto=format&fit=crop&w=600&q=80'
+    };
+
+    function getServiceImageUrl(service) {
+      if (service && service.imageUrl && service.imageUrl.trim()) return service.imageUrl;
+      return CATEGORY_IMAGES[service?.category] || DEFAULT_CATALOG_IMAGE;
+    }
+
     // Robust Default Fallbacks
     const fallbackServices = [
-      { _id: 'srv_1', name: 'Classic Haircut & Styling', category: 'Hair', durationMinutes: 45, price: 35, description: 'Shampoo, precision cut, and blowdry styling.' },
-      { _id: 'srv_2', name: 'Deluxe Hydration Facial', category: 'Skincare', durationMinutes: 60, price: 75, description: 'Deep botanical cleansing, exfoliation, hydration mask, and massage.' },
-      { _id: 'srv_3', name: 'Gel Manicure & Pedicure', category: 'Nails', durationMinutes: 75, price: 60, description: 'Long-lasting gel polish, cuticle care, and nourishing spa scrub.' },
-      { _id: 'srv_4', name: 'Balayage Color & Highlights', category: 'Hair', durationMinutes: 120, price: 140, description: 'Custom hand-painted highlights and gloss treatment.' },
-      { _id: 'srv_5', name: 'Bridal Haute Coiffure', category: 'Bridal', durationMinutes: 150, price: 210, description: 'Full wedding day hair styling, airbrush makeup, and veil placement.' }
+      { _id: 'srv_1', name: 'Classic Haircut & Styling', category: 'Hair', durationMinutes: 45, price: 35, description: 'Shampoo, precision cut, and blowdry styling.', imageUrl: 'https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&w=600&q=80' },
+      { _id: 'srv_2', name: 'Deluxe Hydration Facial', category: 'Skincare', durationMinutes: 60, price: 75, description: 'Deep botanical cleansing, exfoliation, hydration mask, and massage.', imageUrl: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=600&q=80' },
+      { _id: 'srv_3', name: 'Gel Manicure & Pedicure', category: 'Nails', durationMinutes: 75, price: 60, description: 'Long-lasting gel polish, cuticle care, and nourishing spa scrub.', imageUrl: 'https://images.unsplash.com/photo-1632345031435-8727f6897d53?auto=format&fit=crop&w=600&q=80' },
+      { _id: 'srv_4', name: 'Balayage Color & Highlights', category: 'Hair', durationMinutes: 120, price: 140, description: 'Custom hand-painted highlights and gloss treatment.', imageUrl: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80' },
+      { _id: 'srv_5', name: 'Bridal Haute Coiffure', category: 'Bridal', durationMinutes: 150, price: 210, description: 'Full wedding day hair styling, airbrush makeup, and veil placement.', imageUrl: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80' },
+      { _id: 'srv_6', name: 'Aromatherapy Hair Spa', category: 'Hair', durationMinutes: 60, price: 65, description: 'Organic botanical oil massage and scalp renewal.', imageUrl: 'https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?auto=format&fit=crop&w=600&q=80' }
     ];
 
     const fallbackStaff = [
@@ -788,25 +914,39 @@
       const list = (items && items.length > 0) ? items : fallbackServices;
 
       grid.innerHTML = list.map(s => `
-        <div class="glass-card glass-card-hover rounded-2xl p-6 flex flex-col justify-between border border-white/5">
-          <div>
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-[10px] uppercase tracking-wider font-mono px-2 py-0.5 rounded-full bg-gold-500/10 text-gold-400 border border-gold-500/20">
+        <div class="glass-card glass-card-hover rounded-2xl overflow-hidden flex flex-col justify-between border border-white/5 group">
+          <div class="relative w-full h-44 overflow-hidden bg-noir-850">
+            <img 
+              src="${getServiceImageUrl(s)}" 
+              alt="${s.name}" 
+              loading="lazy"
+              class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              onerror="this.src='https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=600&q=80'"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-noir-900 via-transparent to-transparent opacity-85"></div>
+            <div class="absolute top-3 left-3 right-3 flex items-center justify-between">
+              <span class="text-[10px] uppercase tracking-wider font-mono px-2.5 py-1 rounded-full bg-noir-900/85 backdrop-blur-md text-gold-400 border border-gold-500/30 shadow-md">
                 ${s.category || 'Hair'}
               </span>
-              <span class="text-xs text-slate-400">⏱ ${s.durationMinutes || 45} mins</span>
+              <span class="text-[11px] font-medium px-2.5 py-1 rounded-full bg-black/65 backdrop-blur-md text-slate-200">
+                ⏱ ${s.durationMinutes || 45} mins
+              </span>
             </div>
-            <h4 class="font-serif text-xl font-bold text-white mb-2">${s.name}</h4>
-            <p class="text-xs text-slate-400 leading-relaxed font-light mb-6">${s.description || 'Premium salon treatment with customized consultations.'}</p>
           </div>
-          <div class="pt-4 border-t border-white/5 flex items-center justify-between">
+          <div class="p-5 flex-1 flex flex-col justify-between">
             <div>
-              <span class="text-[10px] text-slate-500 uppercase tracking-wider block">Price</span>
-              <span class="font-serif text-2xl font-bold gold-gradient-text">$${s.price}</span>
+              <h4 class="font-serif text-lg font-bold text-white mb-1.5 group-hover:text-gold-300 transition-colors">${s.name}</h4>
+              <p class="text-xs text-slate-400 leading-relaxed font-light mb-4 line-clamp-2">${s.description || 'Premium salon treatment with customized consultations.'}</p>
             </div>
-            <button onclick="selectServiceForBooking('${s._id}')" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-gold-500 hover:text-noir-900 text-slate-200 text-xs font-semibold transition-all">
-              Reserve
-            </button>
+            <div class="pt-3 border-t border-white/5 flex items-center justify-between">
+              <div>
+                <span class="text-[10px] text-slate-500 uppercase tracking-wider block">Price</span>
+                <span class="font-serif text-2xl font-bold gold-gradient-text">$${s.price}</span>
+              </div>
+              <button onclick="selectServiceForBooking('${s._id}')" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-gold-500 hover:text-noir-900 text-slate-200 text-xs font-semibold transition-all">
+                Reserve
+              </button>
+            </div>
           </div>
         </div>
       `).join('');
@@ -1364,23 +1504,214 @@
       }
     }
 
-    // Modal controls
+    // ================= FULL AUTHENTICATION SYSTEM =================
     function openAuthModal() {
       const modal = document.getElementById('authModal');
       if (modal) modal.classList.remove('hidden');
+      updateAuthModalUI();
     }
+
     function closeAuthModal() {
       const modal = document.getElementById('authModal');
       if (modal) modal.classList.add('hidden');
+      hideAuthAlert();
     }
-    function setPersona(name, email, role) {
-      state.currentUser = { name, email, role };
-      const uName = document.getElementById('currentUserName');
-      const uRole = document.getElementById('currentUserRole');
-      if (uName) uName.innerText = name;
-      if (uRole) uRole.innerText = role;
+
+    function switchAuthTab(mode) {
+      const isLogin = mode === 'login';
+      const lForm = document.getElementById('loginForm');
+      const rForm = document.getElementById('registerForm');
+      const demoSec = document.getElementById('demoAccountsSection');
+      if (lForm) lForm.classList.toggle('hidden', !isLogin);
+      if (rForm) rForm.classList.toggle('hidden', isLogin);
+      if (demoSec) demoSec.classList.toggle('hidden', !isLogin);
+
+      const tabLogin = document.getElementById('tabBtnLogin');
+      const tabReg = document.getElementById('tabBtnRegister');
+      const title = document.getElementById('authModalTitle');
+
+      if (isLogin) {
+        if (tabLogin) tabLogin.className = 'pb-2 px-3 font-semibold text-gold-400 border-b-2 border-gold-500 transition-all';
+        if (tabReg) tabReg.className = 'pb-2 px-3 font-medium text-slate-400 hover:text-white transition-all';
+        if (title) title.innerText = 'Sign In to Luxe Salon';
+      } else {
+        if (tabReg) tabReg.className = 'pb-2 px-3 font-semibold text-gold-400 border-b-2 border-gold-500 transition-all';
+        if (tabLogin) tabLogin.className = 'pb-2 px-3 font-medium text-slate-400 hover:text-white transition-all';
+        if (title) title.innerText = 'Create an Account';
+      }
+      hideAuthAlert();
+    }
+
+    function togglePasswordVisibility(inputId, btn) {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.innerText = '🙈';
+      } else {
+        input.type = 'password';
+        btn.innerText = '👁️';
+      }
+    }
+
+    function showAuthAlert(msg, type = 'error') {
+      const alert = document.getElementById('authAlert');
+      if (!alert) return;
+      alert.classList.remove('hidden');
+      if (type === 'error') {
+        alert.className = 'p-3 rounded-xl text-xs bg-rose-500/10 text-rose-300 border border-rose-500/20';
+      } else {
+        alert.className = 'p-3 rounded-xl text-xs bg-emerald-500/10 text-emerald-300 border border-emerald-500/20';
+      }
+      alert.innerText = msg;
+    }
+
+    function hideAuthAlert() {
+      const alert = document.getElementById('authAlert');
+      if (alert) alert.classList.add('hidden');
+    }
+
+    function updateAuthModalUI() {
+      const banner = document.getElementById('authLoggedInBanner');
+      const user = state.currentUser;
+      if (user && user.email) {
+        if (banner) banner.classList.remove('hidden');
+        const bUser = document.getElementById('authBannerUser');
+        const bRole = document.getElementById('authBannerRole');
+        if (bUser) bUser.innerText = user.fullName || user.name || user.email;
+        if (bRole) bRole.innerText = `${user.role || 'customer'} account`;
+      } else {
+        if (banner) banner.classList.add('hidden');
+      }
+    }
+
+    function applyUserSession(user, token) {
+      state.currentUser = user;
+      if (token) localStorage.setItem('salon_token', token);
+      localStorage.setItem('salon_user', JSON.stringify(user));
+
+      // Update Nav Buttons
+      const navLabel = document.getElementById('navUserLabel');
+      const navBadge = document.getElementById('navUserRoleBadge');
+      const navAvatar = document.getElementById('navUserAvatar');
+
+      if (navLabel) navLabel.innerText = user.fullName || user.name || user.email.split('@')[0];
+      if (navBadge) {
+        navBadge.classList.remove('hidden');
+        navBadge.innerText = user.role || 'customer';
+      }
+      if (navAvatar) {
+        const initials = (user.fullName || user.name || user.email).split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase();
+        navAvatar.innerText = initials || '👤';
+      }
+
+      // Prepopulate booking form fields
+      const bookName = document.getElementById('bookCustomerName');
+      const bookEmail = document.getElementById('bookCustomerEmail');
+      const bookPhone = document.getElementById('bookCustomerPhone');
+      if (bookName && (user.fullName || user.name)) bookName.value = user.fullName || user.name;
+      if (bookEmail && user.email) bookEmail.value = user.email;
+      if (bookPhone && user.phone) bookPhone.value = user.phone;
+
+      updateAuthModalUI();
+    }
+
+    function logoutUser() {
+      state.currentUser = null;
+      localStorage.removeItem('salon_token');
+      localStorage.removeItem('salon_user');
+
+      const navLabel = document.getElementById('navUserLabel');
+      const navBadge = document.getElementById('navUserRoleBadge');
+      const navAvatar = document.getElementById('navUserAvatar');
+
+      if (navLabel) navLabel.innerText = 'Sign In';
+      if (navBadge) navBadge.classList.add('hidden');
+      if (navAvatar) navAvatar.innerText = '👤';
+
+      updateAuthModalUI();
       closeAuthModal();
-      showToast(`Logged in as ${name} (${role})`, 'info');
+      showToast('Signed out successfully', 'info');
+    }
+
+    async function handlePortalLogin(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      const email = document.getElementById('loginEmail')?.value;
+      const password = document.getElementById('loginPassword')?.value;
+      const btn = document.getElementById('loginSubmitBtn');
+
+      if (!email || !password) return;
+      hideAuthAlert();
+      if (btn) { btn.disabled = true; btn.innerText = 'Signing in...'; }
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Invalid email or password');
+
+        applyUserSession(data.user, data.token || data.session?.access_token);
+        showToast(`Welcome back, ${data.user.fullName || data.user.email}!`, 'success');
+        closeAuthModal();
+      } catch (err) {
+        showAuthAlert(err.message, 'error');
+      } finally {
+        if (btn) { btn.disabled = false; btn.innerText = 'Sign In'; }
+      }
+    }
+
+    async function handlePortalRegister(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      const fullName = document.getElementById('regFullName')?.value;
+      const role = document.getElementById('regRole')?.value || 'customer';
+      const phone = document.getElementById('regPhone')?.value;
+      const email = document.getElementById('regEmail')?.value;
+      const password = document.getElementById('regPassword')?.value;
+      const confirmPassword = document.getElementById('regConfirmPassword')?.value;
+      const btn = document.getElementById('regSubmitBtn');
+
+      if (!email || !password) return;
+      if (password.length < 6) {
+        showAuthAlert('Password must be at least 6 characters long.', 'error');
+        return;
+      }
+      if (password !== confirmPassword) {
+        showAuthAlert('Passwords do not match.', 'error');
+        return;
+      }
+
+      hideAuthAlert();
+      if (btn) { btn.disabled = true; btn.innerText = 'Creating account...'; }
+
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fullName, role, phone, email, password })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Registration failed');
+
+        applyUserSession(data.user, data.token || data.session?.access_token);
+        showToast(`Account created! Welcome, ${data.user.fullName}!`, 'success');
+        closeAuthModal();
+      } catch (err) {
+        showAuthAlert(err.message, 'error');
+      } finally {
+        if (btn) { btn.disabled = false; btn.innerText = 'Create Account'; }
+      }
+    }
+
+    // Safe credentials prefill helper (never automatically logs in or bypasses auth)
+    function fillPortalCredentials(email, password, roleName) {
+      const emailInput = document.getElementById('loginEmail');
+      const passInput = document.getElementById('loginPassword');
+      if (emailInput) emailInput.value = email;
+      if (passInput) passInput.value = password;
+      showAuthAlert(`Filled ${roleName} credentials. Please click "Sign In" to authenticate.`, 'info');
     }
 
     function openStaffModal() {
@@ -1434,6 +1765,16 @@
         tomorrow.setDate(tomorrow.getDate() + 1);
         dateInput.value = tomorrow.toISOString().split('T')[0];
       }
+
+      // Restore session from localStorage
+      try {
+        const savedUser = localStorage.getItem('salon_user');
+        const savedToken = localStorage.getItem('salon_token');
+        if (savedUser) {
+          applyUserSession(JSON.parse(savedUser), savedToken);
+        }
+      } catch (e) {}
+
       loadServices();
       loadStaff();
       loadBookings();

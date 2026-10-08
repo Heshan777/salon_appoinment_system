@@ -6,6 +6,7 @@ const ServiceItemSchema = new mongoose.Schema({
   durationMinutes: { type: Number, required: true, default: 45 },
   price: { type: Number, required: true },
   description: { type: String, default: '' },
+  imageUrl: { type: String, default: '' },
   isActive: { type: Boolean, default: true }
 }, { timestamps: true });
 

@@ -1,4 +1,4 @@
-const { spawn } = require('child_process');
+const { spawn, execSync } = require('child_process');
 const path = require('path');
 
 const services = [
@@ -14,6 +14,19 @@ const services = [
 console.log('====================================================');
 console.log('💈 Starting Salon Management System Microservices 💈');
 console.log('====================================================');
+
+// Pre-flight: automatically free any lingering processes on microservice ports
+function clearPorts() {
+  try {
+    if (process.platform === 'win32') {
+      execSync('powershell -NoProfile -Command "5000..5006 | ForEach-Object { $conns = Get-NetTCPConnection -LocalPort $_ -ErrorAction SilentlyContinue; foreach ($c in $conns) { if ($c.OwningProcess -and $c.OwningProcess -ne $PID) { Stop-Process -Id $c.OwningProcess -Force -ErrorAction SilentlyContinue } } }"', { stdio: 'ignore' });
+    }
+  } catch (err) {
+    // Silently continue if ports were already free
+  }
+}
+
+clearPorts();
 
 const processes = [];
 
@@ -42,11 +55,23 @@ services.forEach(s => {
   processes.push(child);
 });
 
-process.on('SIGINT', () => {
-  console.log('\nShutting down all microservices...');
-  processes.forEach(p => p.kill());
+function cleanup() {
+  console.log('\nShutting down microservices...');
+  processes.forEach(p => {
+    try {
+      if (process.platform === 'win32') {
+        execSync(`taskkill /pid ${p.pid} /T /F`, { stdio: 'ignore' });
+      } else {
+        p.kill();
+      }
+    } catch (e) {}
+  });
+  clearPorts();
   process.exit();
-});
+}
 
-// Keep parent process alive indefinitely
+process.on('SIGINT', cleanup);
+process.on('SIGTERM', cleanup);
+
+// Keep parent process alive
 setInterval(() => {}, 1000 * 60 * 60);

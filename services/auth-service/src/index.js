@@ -13,8 +13,36 @@ const JWT_SECRET = process.env.JWT_SECRET || 'salon_secret_key_12345';
 app.use(cors());
 app.use(express.json());
 
-// In-memory fallback store for local development if Supabase credentials are not connected yet
-const localUsers = [];
+// Seeded demo accounts for immediate testing
+const localUsers = [
+  {
+    id: 'usr_admin_1',
+    email: 'owner@luxesalon.com',
+    password: 'admin123',
+    fullName: 'Sarah Olsen',
+    role: 'admin',
+    phone: '+1-555-0100',
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'usr_stylist_1',
+    email: 'stylist@luxesalon.com',
+    password: 'stylist123',
+    fullName: 'Elena Rostova',
+    role: 'stylist',
+    phone: '+1-555-0101',
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'usr_customer_1',
+    email: 'client@luxesalon.com',
+    password: 'client123',
+    fullName: 'Alice Walker',
+    role: 'customer',
+    phone: '+1-555-0102',
+    createdAt: new Date().toISOString()
+  }
+];
 
 // Health Check
 app.get('/api/auth/health', (req, res) => {
@@ -34,6 +62,10 @@ app.post('/api/auth/register', async (req, res) => {
     return res.status(400).json({ error: 'Email and password are required' });
   }
 
+  if (password.length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+  }
+
   try {
     if (supabase) {
       const { data, error } = await supabase.auth.signUp({
@@ -45,17 +77,25 @@ app.post('/api/auth/register', async (req, res) => {
       });
 
       if (error) throw error;
+      const userPayload = {
+        id: data.user?.id,
+        email: data.user?.email || email,
+        fullName: data.user?.user_metadata?.fullName || fullName || email.split('@')[0],
+        role: data.user?.user_metadata?.role || role,
+        phone: data.user?.user_metadata?.phone || phone || ''
+      };
       return res.status(201).json({
         message: 'User registered successfully via Supabase',
-        user: data.user,
+        user: userPayload,
+        token: data.session?.access_token || '',
         session: data.session
       });
     }
 
     // Mock Mode
-    const existing = localUsers.find(u => u.email === email);
+    const existing = localUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
     if (existing) {
-      return res.status(400).json({ error: 'User already exists' });
+      return res.status(400).json({ error: 'An account with this email already exists' });
     }
 
     const newUser = {
@@ -73,7 +113,7 @@ app.post('/api/auth/register', async (req, res) => {
     });
 
     res.status(201).json({
-      message: 'User registered successfully (Local Mock Mode)',
+      message: 'User registered successfully',
       user: newUser,
       token
     });
@@ -99,15 +139,23 @@ app.post('/api/auth/login', async (req, res) => {
       });
 
       if (error) throw error;
+      const userPayload = {
+        id: data.user?.id,
+        email: data.user?.email,
+        fullName: data.user?.user_metadata?.fullName || data.user?.email?.split('@')[0],
+        role: data.user?.user_metadata?.role || 'customer',
+        phone: data.user?.user_metadata?.phone || ''
+      };
       return res.json({
         message: 'Login successful via Supabase',
-        user: data.user,
+        user: userPayload,
+        token: data.session?.access_token || '',
         session: data.session
       });
     }
 
     // Mock Mode
-    const user = localUsers.find(u => u.email === email && u.password === password);
+    const user = localUsers.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
     if (!user) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
@@ -118,7 +166,7 @@ app.post('/api/auth/login', async (req, res) => {
 
     const { password: _, ...userSafe } = user;
     res.json({
-      message: 'Login successful (Local Mock Mode)',
+      message: 'Login successful',
       user: userSafe,
       token
     });

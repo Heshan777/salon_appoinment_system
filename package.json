@@ -17,7 +17,7 @@
     "dev:ai": "npm --workspace=services/ai-assistant-service run dev",
     "dev:payment": "npm --workspace=services/payment-service run dev",
     "dev:notification": "npm --workspace=services/notification-service run dev",
-    "test": "echo \"Running microservices tests...\" && exit 0"
+    "test": "node scripts/run-qa-suite.js"
   },
   "keywords": [
     "microservices",
