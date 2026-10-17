@@ -45,7 +45,8 @@ async function runQA() {
     { name: 'Catalog Service', path: '/api/catalog/health' },
     { name: 'Payment Service', path: '/api/payments/health' },
     { name: 'Notification Service', path: '/api/notifications/health' },
-    { name: 'AI Assistant Service', path: '/api/ai/health' }
+    { name: 'AI Assistant Service', path: '/api/ai/health' },
+    { name: 'Inventory Service', path: '/api/inventory/health' }
   ];
 
   for (const ep of healthEndpoints) {
@@ -382,10 +383,78 @@ async function runQA() {
     record('AI Assistant Service', 'Intent Extraction', false, err.message);
   }
 
+  try {
+    const res = await request('/api/ai/agent', {
+      method: 'POST',
+      body: JSON.stringify({ message: 'Check current salon inventory and low-stock supplies' })
+    });
+    const passed = res.status === 200 && !!res.data?.reply && Array.isArray(res.data?.toolCalls) && res.data.toolCalls.length > 0;
+    record('AI Autonomous Agent', 'Multi-Turn Tool Calling Orchestrator (POST /api/ai/agent)', passed, `Tool executed: ${res.data?.toolCalls?.[0]?.tool}`);
+  } catch (err) {
+    record('AI Autonomous Agent', 'Multi-Turn Tool Calling Orchestrator', false, err.message);
+  }
+
+  try {
+    const res = await request('/api/ai/tools/execute', {
+      method: 'POST',
+      body: JSON.stringify({ toolName: 'getCatalogServices', args: { category: 'Hair' } })
+    });
+    const passed = res.status === 200 && res.data?.result?.services?.length > 0;
+    record('AI Autonomous Agent', 'Direct Microservice Tool Execution (POST /api/ai/tools/execute)', passed, `${res.data?.result?.services?.length} hair services fetched`);
+  } catch (err) {
+    record('AI Autonomous Agent', 'Direct Microservice Tool Execution', false, err.message);
+  }
+
   // -----------------------------------------------------------
-  // SUITE 8: FRONTEND USER EXPERIENCE & STATIC ASSETS
+  // SUITE 8: INVENTORY & CONSUMABLES CHECKOUT SERVICE (PORT 5007)
   // -----------------------------------------------------------
-  console.log('\n--- 8. Frontend User Experience & Static Assets Audit ---');
+  console.log('\n--- 8. Inventory & Consumables Tracking Audit ---');
+  try {
+    const res = await request('/api/inventory');
+    const passed = res.status === 200 && Array.isArray(res.data?.stock) && res.data.stock.length > 0;
+    record('Inventory Service', 'List Central Inventory & Stock Alerts (GET /api/inventory)', passed, `${res.data?.stock?.length || 0} items, $${res.data?.totalValuation || 0} valuation`);
+  } catch (err) {
+    record('Inventory Service', 'List Inventory', false, err.message);
+  }
+
+  try {
+    const res = await request('/api/inventory/consume', {
+      method: 'POST',
+      body: JSON.stringify({
+        appointmentId: 'apt_qa_1001',
+        stylistName: 'Elena Rostova',
+        customerName: 'Claire Bennett',
+        serviceName: 'Balayage & Glaze',
+        items: [
+          { itemId: 'inv_1', amountUsed: 60 },
+          { itemId: 'inv_2', amountUsed: 30 }
+        ]
+      })
+    });
+    const passed = res.status === 201 && res.data?.log && res.data.log.totalCost > 0;
+    record('Inventory Service', 'Deduct Consumables Upon Checkout (POST /api/inventory/consume)', passed, `Supply cost: $${res.data?.log?.totalCost}`);
+  } catch (err) {
+    record('Inventory Service', 'Consume Supplies', false, err.message);
+  }
+
+  try {
+    const res = await request('/api/inventory/restock', {
+      method: 'POST',
+      body: JSON.stringify({
+        itemId: 'inv_1',
+        addedQuantity: 1000
+      })
+    });
+    const passed = res.status === 200 && res.data?.item?.quantity > 0;
+    record('Inventory Service', 'Restock Inventory Supplies (POST /api/inventory/restock)', passed, `New stock: ${res.data?.item?.quantity} ${res.data?.item?.unit}`);
+  } catch (err) {
+    record('Inventory Service', 'Restock Inventory', false, err.message);
+  }
+
+  // -----------------------------------------------------------
+  // SUITE 9: FRONTEND USER EXPERIENCE & STATIC ASSETS
+  // -----------------------------------------------------------
+  console.log('\n--- 9. Frontend User Experience & Static Assets Audit ---');
   try {
     const res = await request('/');
     const passed = res.status === 200 && res.data?.includes('<div id="root">');

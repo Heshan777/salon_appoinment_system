@@ -27,13 +27,14 @@ const services = {
   payment: process.env.PAYMENT_SERVICE_URL || 'http://localhost:5004',
   notification: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:5005',
   ai: process.env.AI_SERVICE_URL || 'http://localhost:5006',
+  inventory: process.env.INVENTORY_SERVICE_URL || 'http://localhost:5007'
 };
 
 // Health Check Endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'healthy',
-    gateway: 'Salon Management API Gateway',
+    gateway: 'GlowSync API Gateway',
     timestamp: new Date().toISOString(),
     routes: {
       auth: '/api/auth',
@@ -41,7 +42,8 @@ app.get('/health', (req, res) => {
       catalog: '/api/catalog',
       payments: '/api/payments',
       notifications: '/api/notifications',
-      ai: '/api/ai'
+      ai: '/api/ai',
+      inventory: '/api/inventory'
     }
   });
 });
@@ -71,6 +73,7 @@ app.use('/api/catalog', setupProxy(services.catalog));
 app.use('/api/payments', setupProxy(services.payment));
 app.use('/api/notifications', setupProxy(services.notification));
 app.use('/api/ai', setupProxy(services.ai));
+app.use('/api/inventory', setupProxy(services.inventory));
 
 // Client SPA fallback
 app.get('*', (req, res, next) => {

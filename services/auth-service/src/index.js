@@ -13,11 +13,11 @@ const JWT_SECRET = process.env.JWT_SECRET || 'salon_secret_key_12345';
 app.use(cors());
 app.use(express.json());
 
-// Seeded demo accounts for immediate testing
+// Seeded demo accounts matching 4 Target Actors in GlowSync
 const localUsers = [
   {
     id: 'usr_admin_1',
-    email: 'owner@luxesalon.com',
+    email: 'owner@glowsync.com',
     password: 'admin123',
     fullName: 'Sarah Olsen',
     role: 'admin',
@@ -25,8 +25,17 @@ const localUsers = [
     createdAt: new Date().toISOString()
   },
   {
+    id: 'usr_reception_1',
+    email: 'reception@glowsync.com',
+    password: 'reception123',
+    fullName: 'Chloe Bennett',
+    role: 'receptionist',
+    phone: '+1-555-0105',
+    createdAt: new Date().toISOString()
+  },
+  {
     id: 'usr_stylist_1',
-    email: 'stylist@luxesalon.com',
+    email: 'stylist@glowsync.com',
     password: 'stylist123',
     fullName: 'Elena Rostova',
     role: 'stylist',
@@ -35,13 +44,17 @@ const localUsers = [
   },
   {
     id: 'usr_customer_1',
-    email: 'client@luxesalon.com',
+    email: 'client@glowsync.com',
     password: 'client123',
     fullName: 'Alice Walker',
     role: 'customer',
     phone: '+1-555-0102',
     createdAt: new Date().toISOString()
-  }
+  },
+  // Backwards compatibility aliases
+  { id: 'usr_legacy_1', email: 'owner@luxesalon.com', password: 'admin123', fullName: 'Sarah Olsen', role: 'admin', phone: '+1-555-0100', createdAt: new Date().toISOString() },
+  { id: 'usr_legacy_2', email: 'stylist@luxesalon.com', password: 'stylist123', fullName: 'Elena Rostova', role: 'stylist', phone: '+1-555-0101', createdAt: new Date().toISOString() },
+  { id: 'usr_legacy_3', email: 'client@luxesalon.com', password: 'client123', fullName: 'Alice Walker', role: 'customer', phone: '+1-555-0102', createdAt: new Date().toISOString() }
 ];
 
 // Health Check

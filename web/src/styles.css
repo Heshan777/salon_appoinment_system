@@ -108,4 +108,11 @@
 .notif-list{flex:1;overflow-y:auto;padding:16px}
 .notif-item{padding:12px 14px;border:1px solid var(--line);border-radius:10px;margin-bottom:10px;background:#fdfcfb;font-size:11px}
 
+/* ================= INVENTORY & CONSUMABLES (SCENARIO 05) ================= */
+.stock-warning-badge{background:#fff2e8;color:#d46b08;border:1px solid #ffd591;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:600}
+.stock-healthy-badge{background:#f6ffed;color:#389e0d;border:1px solid #b7eb8f;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:600}
+.consumable-chip{background:#f0effb;border:1px solid #d8d4f4;border-radius:8px;padding:8px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;margin-bottom:8px}
+.role-badge.receptionist{background:#e0f2fe;color:#0369a1}
+
+
 

@@ -5,7 +5,7 @@ import {
   DollarSign, LayoutDashboard, Menu, MessageSquare, Plus, RefreshCw,
   Search, Settings, Sparkles, UserRound, UsersRound, X, XCircle,
   LogIn, LogOut, Eye, EyeOff, AlertCircle, ShieldCheck, Lock, KeyRound,
-  Scissors, CreditCard, Activity, Trash2, Phone, Mail, Award
+  Scissors, CreditCard, Activity, Trash2, Phone, Mail, Award, Package, Boxes, CheckCheck
 } from 'lucide-react';
 import './styles.css';
 
@@ -42,14 +42,23 @@ const fallbackServices = [
 ];
 
 const fallbackStaff = [
-  { _id: 'stf_1', name: 'Sarah Jenkins', email: 'sarah@salon.com', phone: '+1-555-0101', specialties: ['Hair', 'Bridal', 'Color'], workingHours: { start: '09:00', end: '17:00' } },
-  { _id: 'stf_2', name: 'David Kim', email: 'david@salon.com', phone: '+1-555-0102', specialties: ['Skincare', 'Massage'], workingHours: { start: '10:00', end: '18:00' } },
-  { _id: 'stf_3', name: 'Elena Rostova', email: 'elena@salon.com', phone: '+1-555-0103', specialties: ['Nails', 'Lashes', 'Bridal'], workingHours: { start: '09:30', end: '17:30' } }
+  { _id: 'stf_1', name: 'Sarah Jenkins', email: 'sarah@salon.com', phone: '+1-555-0101', specialties: ['Hair', 'Bridal', 'Color'], workingHours: { start: '09:00', end: '17:00' }, breakTime: '13:00 - 14:00' },
+  { _id: 'stf_2', name: 'David Kim', email: 'david@salon.com', phone: '+1-555-0102', specialties: ['Skincare', 'Massage'], workingHours: { start: '10:00', end: '18:00' }, breakTime: '14:00 - 15:00' },
+  { _id: 'stf_3', name: 'Elena Rostova', email: 'elena@salon.com', phone: '+1-555-0103', specialties: ['Nails', 'Lashes', 'Bridal'], workingHours: { start: '09:30', end: '17:30' }, breakTime: '13:30 - 14:30' }
 ];
 
 const fallbackTransactions = [
   { id: 'txn_1001', appointmentId: 'apt_sample_1', customerEmail: 'alice@example.com', amount: 35, paymentMethod: 'card', status: 'succeeded', createdAt: new Date(Date.now() - 86400000).toISOString() },
   { id: 'txn_1002', appointmentId: 'apt_sample_2', customerEmail: 'marcus@example.com', amount: 75, paymentMethod: 'apple_pay', status: 'succeeded', createdAt: new Date(Date.now() - 43200000).toISOString() }
+];
+
+const fallbackInventory = [
+  { id: 'inv_1', name: 'Botanical Hair Toner', category: 'Hair Color', quantity: 2400, unit: 'ml', minThreshold: 500, unitCost: 0.12, location: 'Color Bar' },
+  { id: 'inv_2', name: 'Keratin Smoothing Solution', category: 'Treatments', quantity: 1800, unit: 'ml', minThreshold: 300, unitCost: 0.25, location: 'Shelf B' },
+  { id: 'inv_3', name: 'Organic Argan Scalp Oil', category: 'Treatments', quantity: 1200, unit: 'ml', minThreshold: 200, unitCost: 0.18, location: 'Spa Room' },
+  { id: 'inv_4', name: 'Deluxe Collagen Facial Mask', category: 'Skincare', quantity: 42, unit: 'units', minThreshold: 10, unitCost: 4.50, location: 'Facial Cooler' },
+  { id: 'inv_5', name: 'Vegan Gel Polish Base Coat', category: 'Nails', quantity: 35, unit: 'bottles', minThreshold: 8, unitCost: 8.00, location: 'Station 3' },
+  { id: 'inv_6', name: 'Bleach Powder & Developer', category: 'Hair Color', quantity: 3800, unit: 'g', minThreshold: 800, unitCost: 0.05, location: 'Dispenser' }
 ];
 
 const formatTime = (date) => new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' }).format(new Date(date || Date.now()));
@@ -71,6 +80,8 @@ function App() {
   const [services, setServices] = useState(fallbackServices);
   const [staff, setStaff] = useState(fallbackStaff);
   const [transactions, setTransactions] = useState(fallbackTransactions);
+  const [inventory, setInventory] = useState(fallbackInventory);
+  const [inventoryLogs, setInventoryLogs] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [systemHealth, setSystemHealth] = useState([]);
   
@@ -78,6 +89,7 @@ function App() {
   const [showBooking, setShowBooking] = useState(false);
   const [showAddService, setShowAddService] = useState(false);
   const [showAddStaff, setShowAddStaff] = useState(false);
+  const [showCompleteModal, setShowCompleteModal] = useState(null); // Scenario 05
   const [showNotifDrawer, setShowNotifDrawer] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -110,22 +122,26 @@ function App() {
   const [aiLoading, setAiLoading] = useState(false);
 
   const loadData = async () => {
-    const [bookingData, serviceData, staffData, paymentData, notifData] = await Promise.all([
+    const [bookingData, serviceData, staffData, paymentData, notifData, invData, invLogs] = await Promise.all([
       getJson('/api/bookings', { bookings: fallbackAppointments }),
       getJson('/api/catalog/services', { services: fallbackServices }),
       getJson('/api/catalog/staff', { staff: fallbackStaff }),
       getJson('/api/payments/transactions', { transactions: fallbackTransactions }),
-      getJson('/api/notifications/logs', { logs: [] })
+      getJson('/api/notifications/logs', { logs: [] }),
+      getJson('/api/inventory', { stock: fallbackInventory }),
+      getJson('/api/inventory/logs', { logs: [] })
     ]);
     if (bookingData.bookings && bookingData.bookings.length > 0) setAppointments(bookingData.bookings);
     if (serviceData.services && serviceData.services.length > 0) setServices(serviceData.services);
     if (staffData.staff && staffData.staff.length > 0) setStaff(staffData.staff);
     if (paymentData.transactions && paymentData.transactions.length > 0) setTransactions(paymentData.transactions);
     if (notifData.logs && notifData.logs.length > 0) setNotifications(notifData.logs);
+    if (invData.stock && invData.stock.length > 0) setInventory(invData.stock);
+    if (invLogs.logs && invLogs.logs.length > 0) setInventoryLogs(invLogs.logs);
   };
 
   const checkSystemHealth = async () => {
-    notify('Auditing live microservices topology...');
+    notify('Auditing live GlowSync microservices topology...');
     const endpoints = [
       { name: 'API Gateway', url: '/health', port: 5000 },
       { name: 'Auth Service', url: '/api/auth/health', port: 5001 },
@@ -133,7 +149,8 @@ function App() {
       { name: 'Catalog Service', url: '/api/catalog/health', port: 5003 },
       { name: 'Payment Service', url: '/api/payments/health', port: 5004 },
       { name: 'Notification Service', url: '/api/notifications/health', port: 5005 },
-      { name: 'AI Assistant Service', url: '/api/ai/health', port: 5006 }
+      { name: 'AI Assistant Service', url: '/api/ai/health', port: 5006 },
+      { name: 'Inventory & Consumables Service', url: '/api/inventory/health', port: 5007 }
     ];
 
     const results = await Promise.all(
@@ -262,6 +279,14 @@ function App() {
       .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
   }, [transactions]);
 
+  const totalStockValuation = useMemo(() => {
+    return inventory.reduce((acc, item) => acc + (item.quantity * item.unitCost), 0);
+  }, [inventory]);
+
+  const lowStockCount = useMemo(() => {
+    return inventory.filter(i => i.quantity <= i.minThreshold).length;
+  }, [inventory]);
+
   const todayCount = appointments.filter((item) => new Date(item.appointmentDate).toDateString() === new Date().toDateString()).length;
 
   // Appointment Status Actions
@@ -339,6 +364,23 @@ function App() {
     notify('Stylist removed from team.');
   };
 
+  const restockInventoryItem = async (item) => {
+    const qtyStr = window.prompt(`Enter quantity to add to ${item.name} (${item.unit}):`, '500');
+    if (!qtyStr || isNaN(qtyStr)) return;
+    const added = parseFloat(qtyStr);
+    try {
+      await fetch(`${API}/api/inventory/restock`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemId: item.id, addedQuantity: added })
+      });
+      loadData();
+      notify(`Restocked ${item.name} by +${added} ${item.unit}!`);
+    } catch (err) {
+      notify('Error restocking: ' + err.message);
+    }
+  };
+
   const handleSendAi = async (promptText) => {
     const message = promptText || aiInput;
     if (!message.trim()) return;
@@ -347,15 +389,28 @@ function App() {
     setAiLoading(true);
 
     try {
-      const res = await fetch(`${API}/api/ai/chat`, {
+      const res = await fetch(`${API}/api/ai/agent`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message })
       });
       const data = await res.json();
-      setAiMessages((prev) => [...prev, { role: 'assistant', text: data.reply || 'Pleased to help with your salon visit.' }]);
+      setAiMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          text: data.reply || 'Pleased to help with your salon visit.',
+          toolCalls: data.toolCalls || [],
+          source: data.source
+        }
+      ]);
+      // If the agent booked an appointment or altered stock, reload system state
+      if (data.toolCalls && data.toolCalls.some(t => ['bookAppointment', 'cancelAppointment', 'processAdvancePayment', 'restockInventoryItem'].includes(t.tool))) {
+        loadData();
+        notify('Autonomous Agent synced updates across microservices.');
+      }
     } catch {
-      let reply = 'At Luxe Salon, our master stylists provide bespoke haircutting, revitalizing facials, and manicures.';
+      let reply = 'At GlowSync Salon, our master stylists provide bespoke haircutting, revitalizing facials, and manicures.';
       if (message.toLowerCase().includes('hair')) reply = 'Our Classic Haircut & Styling is $35 with Sarah Jenkins.';
       if (message.toLowerCase().includes('facial')) reply = 'Our Deluxe Facial is $75 with David Kim.';
       setAiMessages((prev) => [...prev, { role: 'assistant', text: reply }]);
@@ -395,6 +450,7 @@ function App() {
     { label: 'Appointments', icon: CalendarDays, count: appointments.length },
     { label: 'Services', icon: Sparkles, count: services.length },
     { label: 'Team', icon: Scissors, count: staff.length },
+    { label: 'Inventory', icon: Package, count: inventory.length },
     { label: 'Clients', icon: UsersRound, count: clientsList.length },
     { label: 'Financials', icon: DollarSign, count: transactions.length },
     { label: 'Aura AI', icon: MessageSquare },
@@ -405,12 +461,12 @@ function App() {
     <div className="app-shell">
       <aside className={`sidebar ${menuOpen ? 'is-open' : ''}`}>
         <div className="brand">
-          <div className="brand-mark">M</div>
-          <div><strong>maison</strong><span>salon & spa</span></div>
+          <div className="brand-mark" style={{ background: '#6257c3' }}>G</div>
+          <div><strong>GlowSync</strong><span>cloud salon & spa</span></div>
         </div>
-        <div className="workspace-switcher" onClick={() => notify('Active: Luxe Salon Director Mode')}>
-          <span className="workspace-avatar">L</span>
-          <div><b>Luxe Salon</b><small>{user ? `${user.role?.toUpperCase()} console` : 'Enterprise portal'}</small></div>
+        <div className="workspace-switcher" onClick={() => notify('Active: GlowSync Cloud Platform Mode')}>
+          <span className="workspace-avatar" style={{ background: '#eceafb', color: '#6257c3' }}>G</span>
+          <div><b>GlowSync Salon</b><small>{user ? `${user.role?.toUpperCase()} mode` : 'Cloud-native platform'}</small></div>
           <ChevronDown size={15} />
         </div>
         <div className="nav-label">Workspace</div>
@@ -428,19 +484,19 @@ function App() {
           ))}
         </nav>
         <div className="sidebar-footer">
-          <div className="help-card">
+          <div className="help-card" style={{ background: '#f5f3ff', color: '#5548b8' }}>
             <Sparkles size={17} />
             <b>Gemini 2.5 Flash</b>
-            <span>Autonomous concierge online</span>
+            <span>Autonomous scheduling ready</span>
             <button onClick={() => setActiveView('Aura AI')}>
               Open Aura AI <ArrowUpRight size={14} />
             </button>
           </div>
           <div className="profile">
-            <div className="avatar">{user ? initials(user.fullName || user.email) : 'LU'}</div>
+            <div className="avatar" style={{ background: '#6257c3', color: '#fff' }}>{user ? initials(user.fullName || user.email) : 'GS'}</div>
             <div>
               <b>{user ? (user.fullName || user.email.split('@')[0]) : 'Sarah Olsen'}</b>
-              <small>{user ? user.role : 'Owner / Director'}</small>
+              <small>{user ? user.role : 'Owner / Administrator'}</small>
             </div>
             {user ? (
               <button className="icon-button" title="Sign out" onClick={handleLogout}>
@@ -462,7 +518,7 @@ function App() {
               <Menu size={20} />
             </button>
             <div className="breadcrumbs">
-              <span>Maison</span><b>/</b>
+              <span>GlowSync</span><b>/</b>
               <strong>{activeView}</strong>
             </div>
           </div>
@@ -525,7 +581,7 @@ function App() {
               <p className="eyebrow">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
               <h1>Good day, {user ? (user.fullName?.split(' ')[0] || user.email?.split('@')[0]) : 'Sarah'} <span>✦</span></h1>
               <p className="subcopy">
-                {user ? `Active in ${user.role?.toUpperCase()} mode. Full salon operations synchronized across 7 microservices.` : 'Luxe Salon director suite. Manage schedules, clients, catalog, financials, and AI.'}
+                {user ? `Active in ${user.role?.toUpperCase()} mode. Cloud-native salon operations synchronized across 8 microservices.` : 'GlowSync Platform. Manage bookings, staff rosters, inventory consumables, payments, and AI.'}
               </p>
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
@@ -545,7 +601,7 @@ function App() {
                 <StatCard label="Total Appointments" value={appointments.length} change="+14% this mo." color="lavender" icon={<CalendarDays size={18} />} />
                 <StatCard label="Active Clients" value={clientsList.length} change="+8 new" color="peach" icon={<UsersRound size={18} />} />
                 <StatCard label="Gross Revenue" value={`$${totalRevenue}`} change="Succeeded" color="mint" icon={<DollarSign size={18} />} />
-                <StatCard label="Client Rating" value="4.9 ★" change="Top 1%" color="yellow" icon={<Sparkles size={18} />} />
+                <StatCard label="Stock Valuation" value={`$${totalStockValuation.toFixed(0)}`} change={`${lowStockCount} alerts`} color="yellow" icon={<Package size={18} />} />
               </div>
 
               <section className="content-grid">
@@ -561,7 +617,14 @@ function App() {
                   </div>
                   <div className="appointment-list">
                     {filteredAppointments.slice(0, 5).map((item) => (
-                      <AppointmentRow key={item._id} item={item} onStatusChange={updateStatus} onCancel={cancelAndRefund} showActions />
+                      <AppointmentRow
+                        key={item._id}
+                        item={item}
+                        onStatusChange={updateStatus}
+                        onCompleteModal={(apt) => setShowCompleteModal(apt)}
+                        onCancel={cancelAndRefund}
+                        showActions
+                      />
                     ))}
                   </div>
                 </div>
@@ -658,6 +721,7 @@ function App() {
                       key={item._id}
                       item={item}
                       onStatusChange={updateStatus}
+                      onCompleteModal={(apt) => setShowCompleteModal(apt)}
                       onCancel={cancelAndRefund}
                       onDelete={deleteAppointment}
                       showActions
@@ -727,7 +791,7 @@ function App() {
                           <button className="primary-button" style={{ padding: '7px 14px', fontSize: '11px' }} onClick={() => { setSelectedServiceForBook(s); setShowBooking(true); }}>
                             Book
                           </button>
-                          {user?.role === 'admin' && (
+                          {(user?.role === 'admin' || user?.role === 'receptionist') && (
                             <button className="secondary-button" style={{ padding: '7px 10px', color: '#c44242' }} title="Delete service" onClick={() => deleteService(s._id)}>
                               <Trash2 size={13} />
                             </button>
@@ -741,13 +805,13 @@ function App() {
             </div>
           )}
 
-          {/* VIEW: TEAM & STYLISTS */}
+          {/* VIEW: TEAM & STYLISTS (SCENARIO 03: ROSTER & AVAILABILITY) */}
           {activeView === 'Team' && (
             <div className="panel">
               <div className="panel-heading">
                 <div>
-                  <h2>Artisans & Styling Team ({staff.length})</h2>
-                  <p>Certified master stylists, skincare experts, and nail artisans</p>
+                  <h2>Stylist Roster & Work Schedules ({staff.length})</h2>
+                  <p>Certified master stylists, roster availability, breaks, and shift allocations</p>
                 </div>
                 <button className="primary-button" onClick={() => setShowAddStaff(true)}>
                   <Plus size={16} /> Add Artisan
@@ -781,9 +845,15 @@ function App() {
                           ))}
                         </div>
 
-                        <div style={{ borderTop: '1px solid #f2f0ed', paddingTop: '10px', fontSize: '11px', color: '#666', display: 'flex', justifyContent: 'space-between' }}>
-                          <span>Hours: <b>{member.workingHours?.start || '09:00'} - {member.workingHours?.end || '17:00'}</b></span>
-                          <span>Active Visits: <b style={{ color: '#5c4ebd' }}>{assignedCount}</b></span>
+                        <div style={{ borderTop: '1px solid #f2f0ed', paddingTop: '10px', fontSize: '11px', color: '#666', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span>Shift Hours: <b>{member.workingHours?.start || '09:00'} - {member.workingHours?.end || '17:00'}</b></span>
+                            <span style={{ color: '#2bbb77', fontWeight: 600 }}>● Active on Floor</span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span>Meal Break: <b>{member.breakTime || '13:00 - 14:00'}</b></span>
+                            <span>Bookings: <b style={{ color: '#5c4ebd' }}>{assignedCount}</b></span>
+                          </div>
                         </div>
                       </div>
 
@@ -795,7 +865,7 @@ function App() {
                         >
                           Book with {member.name.split(' ')[0]}
                         </button>
-                        {user?.role === 'admin' && (
+                        {(user?.role === 'admin' || user?.role === 'receptionist') && (
                           <button className="secondary-button" style={{ padding: '7px 10px', color: '#c44242' }} title="Delete stylist" onClick={() => deleteStaff(member._id)}>
                             <Trash2 size={13} />
                           </button>
@@ -804,6 +874,136 @@ function App() {
                     </div>
                   );
                 })}
+              </div>
+            </div>
+          )}
+
+          {/* VIEW: INVENTORY & CONSUMABLES (SCENARIO 05: CONSUMABLES TRACKING & CHECKOUT) */}
+          {activeView === 'Inventory' && (
+            <div className="panel">
+              <div className="panel-heading">
+                <div>
+                  <h2>Central Inventory & Consumables Control (Scenario 05)</h2>
+                  <p>Track professional treatment supplies, automate stock deductions, and analyze profit margins</p>
+                </div>
+                <button className="secondary-button" onClick={() => { loadData(); notify('Inventory synchronized from microservice.'); }}>
+                  <RefreshCw size={14} /> Refresh Stock
+                </button>
+              </div>
+
+              <div className="stats-grid" style={{ marginTop: '16px' }}>
+                <StatCard label="Total Stock Valuation" value={`$${totalStockValuation.toFixed(2)}`} change="Current Assets" color="mint" icon={<Package size={18} />} />
+                <StatCard label="Low Stock Alerts" value={lowStockCount} change={lowStockCount > 0 ? "Replenish required" : "Optimal levels"} color="peach" icon={<AlertCircle size={18} />} />
+                <StatCard label="Consumables Logged" value={inventoryLogs.length} change="Treatment usages" color="lavender" icon={<Boxes size={18} />} />
+                <StatCard label="Total SKU Count" value={inventory.length} change="Active products" color="yellow" icon={<CheckCheck size={18} />} />
+              </div>
+
+              <div className="panel-heading" style={{ marginTop: '24px', borderBottom: '1px solid var(--line)', paddingBottom: '10px' }}>
+                <div>
+                  <h3>Product Stock Ledger</h3>
+                  <p>Supplies deducted automatically upon service completion</p>
+                </div>
+              </div>
+
+              <div className="data-table-wrap">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Product Name</th>
+                      <th>Category</th>
+                      <th>Stock Level</th>
+                      <th>Unit Cost</th>
+                      <th>Total Valuation</th>
+                      <th>Location</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {inventory.map((item) => {
+                      const isLow = item.quantity <= item.minThreshold;
+                      return (
+                        <tr key={item.id}>
+                          <td><b>{item.name}</b></td>
+                          <td><span className="specialty-tag">{item.category}</span></td>
+                          <td><strong>{item.quantity} {item.unit}</strong></td>
+                          <td>${item.unitCost?.toFixed(2)}</td>
+                          <td><strong>${(item.quantity * item.unitCost).toFixed(2)}</strong></td>
+                          <td style={{ color: '#777', fontSize: '11px' }}>{item.location || 'Color Bar'}</td>
+                          <td>
+                            <span className={isLow ? 'stock-warning-badge' : 'stock-healthy-badge'}>
+                              {isLow ? `Low Stock (<${item.minThreshold})` : 'In Stock'}
+                            </span>
+                          </td>
+                          <td>
+                            <button
+                              className="secondary-button"
+                              style={{ padding: '4px 10px', fontSize: '10px' }}
+                              onClick={() => restockInventoryItem(item)}
+                            >
+                              + Restock
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Consumption Audit Logs */}
+              <div className="panel-heading" style={{ marginTop: '28px', borderBottom: '1px solid var(--line)', paddingBottom: '10px' }}>
+                <div>
+                  <h3>Consumables Treatment Audit Logs</h3>
+                  <p>Deductions logged by stylists upon completing appointments</p>
+                </div>
+              </div>
+
+              <div className="data-table-wrap">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Log ID</th>
+                      <th>Appointment</th>
+                      <th>Stylist</th>
+                      <th>Client</th>
+                      <th>Service</th>
+                      <th>Supplies Deducted</th>
+                      <th>Consumable Cost</th>
+                      <th>Logged At</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {inventoryLogs.length === 0 ? (
+                      <tr>
+                        <td colSpan="8" style={{ textAlign: 'center', color: '#999', padding: '24px' }}>
+                          No treatment consumables logged yet. Complete an appointment to log usage.
+                        </td>
+                      </tr>
+                    ) : (
+                      inventoryLogs.map((log) => (
+                        <tr key={log.id}>
+                          <td><code style={{ color: '#6257c3' }}>{log.id}</code></td>
+                          <td><code style={{ color: '#777' }}>{log.appointmentId}</code></td>
+                          <td><b>{log.stylistName}</b></td>
+                          <td>{log.customerName}</td>
+                          <td>{log.serviceName}</td>
+                          <td>
+                            {(log.items || []).map((it, idx) => (
+                              <span key={idx} style={{ display: 'block', fontSize: '11px', color: '#555' }}>
+                                • {it.name}: <b>{it.amountUsed} {it.unit}</b> (${it.cost})
+                              </span>
+                            ))}
+                          </td>
+                          <td><strong style={{ color: '#b33a3a' }}>${log.totalCost?.toFixed(2)}</strong></td>
+                          <td style={{ color: '#888', fontSize: '11px' }}>
+                            {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}
@@ -838,13 +1038,13 @@ function App() {
             </div>
           )}
 
-          {/* VIEW: FINANCIALS & TRANSACTIONS */}
+          {/* VIEW: FINANCIALS & TRANSACTIONS (SCENARIO 02: PAYMENT PROCESSING & BILLING) */}
           {activeView === 'Financials' && (
             <div className="panel">
               <div className="panel-heading">
                 <div>
-                  <h2>Financial Ledger & Transactions ({transactions.length})</h2>
-                  <p>Real-time payment processing transactions recorded via Payment Service</p>
+                  <h2>Financial Ledger & Payment Processing (Scenario 02)</h2>
+                  <p>Real-time payment transactions, tax invoice receipts, and refund reconciliation</p>
                 </div>
                 <button className="secondary-button" onClick={() => { loadData(); notify('Financial ledger refreshed.'); }}>
                   <RefreshCw size={14} /> Sync Ledger
@@ -952,10 +1152,10 @@ function App() {
                     key={idx}
                     style={{
                       alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                      maxWidth: '78%',
+                      maxWidth: '82%',
                       background: msg.role === 'user' ? 'var(--ink)' : '#fff',
                       color: msg.role === 'user' ? '#fff' : '#25232b',
-                      padding: '10px 14px',
+                      padding: '12px 16px',
                       borderRadius: '12px',
                       fontSize: '12px',
                       lineHeight: '1.5',
@@ -963,30 +1163,144 @@ function App() {
                       boxShadow: '0 2px 5px rgba(0,0,0,0.03)'
                     }}
                   >
-                    {msg.text}
+                    {/* Tool execution badge if present */}
+                    {msg.toolCalls && msg.toolCalls.length > 0 && (
+                      <div style={{ marginBottom: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        {msg.toolCalls.map((tc, tcIdx) => (
+                          <div
+                            key={tcIdx}
+                            style={{
+                              background: '#f2f0fc',
+                              border: '1px solid #dfdafa',
+                              borderRadius: '6px',
+                              padding: '3px 8px',
+                              fontSize: '10px',
+                              color: '#5548b8',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                              fontFamily: 'monospace'
+                            }}
+                          >
+                            <span>⚙️ Tool Called:</span>
+                            <strong>{tc.tool}</strong>
+                            <span style={{ color: '#888' }}>→ Success</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div style={{ whiteSpace: 'pre-line' }}>{msg.text}</div>
                   </div>
                 ))}
                 {aiLoading && (
-                  <div style={{ alignSelf: 'flex-start', background: '#fff', border: '1px solid #eee', padding: '8px 14px', borderRadius: '12px', fontSize: '12px', color: '#888' }}>
-                    ✦ Aura is consulting the salon catalog...
+                  <div style={{ alignSelf: 'flex-start', background: '#fff', border: '1px solid #eee', padding: '10px 16px', borderRadius: '12px', fontSize: '12px', color: '#6257c3', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Sparkles size={14} className="spin-slow" />
+                    <span>Aura is checking booked sessions & active stylists across microservices...</span>
                   </div>
                 )}
+              </div>
+
+              {/* Interactive Service & Specialist Selection Panel for Customer */}
+              <div style={{ marginTop: '16px', background: '#fff', border: '1px solid #e9e7ec', borderRadius: '12px', padding: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <div>
+                    <h3 style={{ fontSize: '13px', fontWeight: 600, margin: 0 }}>Available Services & Specialists</h3>
+                    <p style={{ fontSize: '11px', color: '#777', margin: 0 }}>Click any service or specialist to prefill details or book directly with Aura</p>
+                  </div>
+                  <button
+                    className="secondary-button"
+                    style={{ fontSize: '11px', padding: '4px 10px' }}
+                    onClick={() => { setSelectedServiceForBook(null); setSelectedStaffForBook(null); setShowBooking(true); }}
+                  >
+                    Open Full Calendar
+                  </button>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '10px' }}>
+                  {services.slice(0, 4).map((srv) => (
+                    <div
+                      key={srv._id || srv.id}
+                      style={{
+                        border: '1px solid #e5e3ea',
+                        borderRadius: '9px',
+                        padding: '10px 12px',
+                        background: '#faf9fc',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        gap: '8px',
+                        transition: 'transform 0.15s, border-color 0.15s'
+                      }}
+                    >
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: '10px', textTransform: 'uppercase', background: '#eceafb', color: '#6257c3', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>{srv.category}</span>
+                          <strong style={{ fontSize: '13px', color: '#1a191f' }}>${srv.price}</strong>
+                        </div>
+                        <h4 style={{ fontSize: '12px', fontWeight: 600, margin: '6px 0 2px' }}>{srv.name}</h4>
+                        <p style={{ fontSize: '10px', color: '#777', margin: 0 }}>{srv.durationMinutes || 45} mins • Active in catalog</p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button
+                          type="button"
+                          className="secondary-button"
+                          style={{ flex: 1, fontSize: '10px', padding: '4px 6px', justifyContent: 'center' }}
+                          onClick={() => handleSendAi(`What is the price and duration of ${srv.name}?`)}
+                        >
+                          Ask Aura
+                        </button>
+                        <button
+                          type="button"
+                          className="primary-button"
+                          style={{ flex: 1, fontSize: '10px', padding: '4px 6px', justifyContent: 'center' }}
+                          onClick={() => {
+                            setSelectedServiceForBook(srv);
+                            handleSendAi(`Book ${srv.name} for tomorrow`);
+                          }}
+                        >
+                          Book Now
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Stylist floor availability pills */}
+                <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid #f0edf4', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '11px', color: '#666', fontWeight: 600 }}>Specialists On-Duty:</span>
+                  {staff.map((st) => (
+                    <button
+                      key={st._id || st.id}
+                      type="button"
+                      className="demo-pill-btn"
+                      style={{ padding: '4px 10px', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                      onClick={() => handleSendAi(`What appointments or slots does ${st.name} have available?`)}
+                    >
+                      <span>✂️</span>
+                      <strong>{st.name}</strong>
+                      <span style={{ fontSize: '10px', color: '#6257c3', background: '#eceafb', padding: '1px 5px', borderRadius: '4px' }}>
+                        {st.specialties ? st.specialties[0] : 'Artisan'}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Quick Prompt Chips */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', margin: '12px 0' }}>
                 {[
-                  'What facial is best for sensitive skin?',
-                  'Recommend a stylist for blonde balayage',
-                  'What are the bridal package options?'
+                  'What treatments are available in the catalog?',
+                  'Check current salon inventory and low-stock supplies',
+                  'What is the stylist roster & working shift hours?',
+                  'Book a Classic Haircut with Elena tomorrow at 3pm'
                 ].map((chip) => (
                   <button
                     key={chip}
                     className="secondary-button"
-                    style={{ padding: '5px 12px', fontSize: '11px', borderRadius: '18px' }}
+                    style={{ padding: '5px 12px', fontSize: '11px', borderRadius: '18px', background: '#fff' }}
                     onClick={() => handleSendAi(chip)}
                   >
-                    {chip}
+                    ✦ {chip}
                   </button>
                 ))}
               </div>
@@ -1009,13 +1323,13 @@ function App() {
             </div>
           )}
 
-          {/* VIEW: SYSTEM ARCHITECTURE & HEALTH */}
+          {/* VIEW: SYSTEM ARCHITECTURE & HEALTH (8 MICROSERVICES) */}
           {activeView === 'System Status' && (
             <div className="panel">
               <div className="panel-heading">
                 <div>
-                  <h2>Microservices Architecture Topology (7 Services)</h2>
-                  <p>Real-time distributed service discovery, port assignment, and heartbeat latency</p>
+                  <h2>GlowSync Microservices Architecture Topology (8 Services)</h2>
+                  <p>Real-time distributed service discovery, port allocation, and heartbeat latency</p>
                 </div>
                 <button className="primary-button" onClick={checkSystemHealth}>
                   <RefreshCw size={15} /> Ping Microservices
@@ -1048,6 +1362,9 @@ function App() {
                         {item.details.supabaseConnected !== undefined && (
                           <span>Supabase Auth: <b style={{ color: '#2bbb77' }}>Configured</b></span>
                         )}
+                        {item.details.itemCount !== undefined && (
+                          <span>Inventory SKU: <b>{item.details.itemCount} items</b></span>
+                        )}
                         {item.details.model && (
                           <span>Model: <b>{item.details.model}</b></span>
                         )}
@@ -1061,7 +1378,7 @@ function App() {
         </div>
       </div>
 
-      {/* MODAL: CREATE APPOINTMENT */}
+      {/* MODAL: CREATE APPOINTMENT (SCENARIO 01 & 02) */}
       {showBooking && (
         <BookingModal
           services={services}
@@ -1076,6 +1393,20 @@ function App() {
             setSelectedStaffForBook(null);
             loadData();
             notify('Appointment booked & synchronized across microservices!');
+          }}
+        />
+      )}
+
+      {/* MODAL: COMPLETE APPOINTMENT & DEDUCT CONSUMABLES (SCENARIO 05) */}
+      {showCompleteModal && (
+        <CompleteWithConsumablesModal
+          appointment={showCompleteModal}
+          inventory={inventory}
+          onClose={() => setShowCompleteModal(null)}
+          onCompleted={() => {
+            setShowCompleteModal(null);
+            loadData();
+            notify('Treatment marked completed & consumables deducted from central inventory!');
           }}
         />
       )}
@@ -1102,7 +1433,7 @@ function App() {
         />
       )}
 
-      {/* MODAL: AUTHENTICATION */}
+      {/* MODAL: AUTHENTICATION (ALL 4 ACTORS) */}
       {showAuthModal && (
         <AuthModal
           initialTab={authModalTab}
@@ -1111,7 +1442,7 @@ function App() {
         />
       )}
 
-      {/* DRAWER: DISPATCHED NOTIFICATIONS */}
+      {/* DRAWER: DISPATCHED NOTIFICATIONS (SCENARIO 04) */}
       <NotificationDrawer
         isOpen={showNotifDrawer}
         onClose={() => setShowNotifDrawer(false)}
@@ -1144,7 +1475,7 @@ function StatCard({ label, value, change, color, icon }) {
   );
 }
 
-function AppointmentRow({ item, onStatusChange, onCancel, onDelete, showActions }) {
+function AppointmentRow({ item, onStatusChange, onCompleteModal, onCancel, onDelete, showActions }) {
   return (
     <div className="appointment-row">
       <div className="time">
@@ -1170,7 +1501,8 @@ function AppointmentRow({ item, onStatusChange, onCancel, onDelete, showActions 
             <button
               className="primary-button"
               style={{ padding: '5px 10px', fontSize: '10px' }}
-              onClick={() => onStatusChange(item._id, 'completed')}
+              title="Complete and log supplies used"
+              onClick={() => onCompleteModal ? onCompleteModal(item) : onStatusChange(item._id, 'completed')}
             >
               Complete
             </button>
@@ -1205,6 +1537,158 @@ function EmptyState() {
       <Sparkles size={28} />
       <b>No appointments matched</b>
       <span>Create a new appointment or modify your query filters.</span>
+    </div>
+  );
+}
+
+// SCENARIO 05: Service Completion, Consumables Tracking & Checkout Modal
+function CompleteWithConsumablesModal({ appointment, inventory, onClose, onCompleted }) {
+  const [selectedSupplies, setSelectedSupplies] = useState([
+    { itemId: 'inv_1', name: 'Botanical Hair Toner', amountUsed: 50, unit: 'ml' }
+  ]);
+  const [notes, setNotes] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const addSupply = (itemId) => {
+    const it = inventory.find(i => i.id === itemId);
+    if (!it) return;
+    setSelectedSupplies(prev => [...prev, { itemId: it.id, name: it.name, amountUsed: 30, unit: it.unit }]);
+  };
+
+  const removeSupply = (index) => {
+    setSelectedSupplies(prev => prev.filter((_, idx) => idx !== index));
+  };
+
+  const updateAmount = (index, val) => {
+    setSelectedSupplies(prev => prev.map((s, idx) => idx === index ? { ...s, amountUsed: Number(val) } : s));
+  };
+
+  const handleFinish = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+
+    try {
+      // 1. Log and deduct consumables in Inventory Service (Scenario 05)
+      if (selectedSupplies.length > 0) {
+        await fetch(`${API}/api/inventory/consume`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            appointmentId: appointment._id,
+            stylistName: appointment.staffName,
+            customerName: appointment.customerName,
+            serviceName: appointment.serviceName,
+            items: selectedSupplies
+          })
+        });
+      }
+
+      // 2. Mark appointment completed in Booking Service
+      await fetch(`${API}/api/bookings/${appointment._id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'completed' })
+      });
+
+      // 3. Dispatch digital receipt & review request (Scenario 05)
+      try {
+        await fetch(`${API}/api/notifications/send-confirmation`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            recipientEmail: appointment.customerEmail,
+            customerName: appointment.customerName,
+            serviceName: appointment.serviceName,
+            appointmentDate: new Date(appointment.appointmentDate).toLocaleString(),
+            staffName: appointment.staffName
+          })
+        });
+      } catch {}
+
+      onCompleted();
+    } catch (err) {
+      alert('Error finalizing treatment: ' + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="modal-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <form className="modal" onSubmit={handleFinish} style={{ maxWidth: '520px' }}>
+        <div className="modal-heading">
+          <div>
+            <p className="eyebrow">Scenario 05 • Consumables & Checkout</p>
+            <h2>Complete Treatment</h2>
+          </div>
+          <button type="button" className="close-button" onClick={onClose}><X size={18} /></button>
+        </div>
+
+        <div style={{ background: '#f8f7f5', padding: '12px 16px', borderRadius: '10px', marginBottom: '14px', fontSize: '12px', display: 'flex', justifyContent: 'space-between' }}>
+          <div>
+            <b>{appointment.customerName}</b>
+            <div style={{ color: '#666', marginTop: '2px' }}>{appointment.serviceName} with <b>{appointment.staffName}</b></div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <span style={{ fontSize: '10px', color: '#888' }}>Total Fee</span>
+            <div style={{ fontSize: '15px', fontWeight: 700, color: '#25232b' }}>${appointment.totalPrice}</div>
+          </div>
+        </div>
+
+        <div style={{ marginBottom: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <label style={{ margin: 0, fontWeight: 600, fontSize: '12px' }}>Log Supplies / Consumables Used:</label>
+            <select
+              style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '6px' }}
+              onChange={(e) => { if (e.target.value) { addSupply(e.target.value); e.target.value = ''; } }}
+            >
+              <option value="">+ Add Product from Stock</option>
+              {inventory.map(inv => (
+                <option key={inv.id} value={inv.id}>{inv.name} ({inv.quantity} {inv.unit} left)</option>
+              ))}
+            </select>
+          </div>
+
+          {selectedSupplies.map((sup, idx) => (
+            <div key={idx} className="consumable-chip">
+              <span style={{ fontWeight: 500 }}>{sup.name}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <input
+                  type="number"
+                  min="1"
+                  value={sup.amountUsed}
+                  onChange={(e) => updateAmount(idx, e.target.value)}
+                  style={{ width: '65px', padding: '4px', fontSize: '11px', textAlign: 'center', border: '1px solid #ccc', borderRadius: '4px' }}
+                />
+                <span style={{ color: '#777', fontSize: '11px' }}>{sup.unit}</span>
+                <button
+                  type="button"
+                  style={{ background: 'none', border: 0, color: '#c44242', cursor: 'pointer', padding: '2px 5px' }}
+                  onClick={() => removeSupply(idx)}
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <label>
+          Treatment Notes & Formulas (Optional)
+          <input
+            placeholder="e.g. 60ml Toner 9V + 10ml clear gloss, customer loved result"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
+        </label>
+
+        <div className="modal-actions" style={{ marginTop: '18px' }}>
+          <button type="button" className="secondary-button" onClick={onClose}>Cancel</button>
+          <button type="submit" className="primary-button" disabled={saving}>
+            {saving ? 'Deducting Stock & Closing...' : 'Deduct Stock & Close Visit'}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }
@@ -1256,7 +1740,7 @@ function BookingModal({ services, staff, preselectedService, preselectedStaff, c
     const payload = { ...form, appointmentDate: safeDate };
 
     try {
-      // 1. Create Booking
+      // 1. Create Booking in Booking Service (Scenario 01)
       const res = await fetch(`${API}/api/bookings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1268,7 +1752,7 @@ function BookingModal({ services, staff, preselectedService, preselectedStaff, c
         if (data.booking?._id) bookingId = data.booking._id;
       }
 
-      // 2. Checkout Payment
+      // 2. Checkout Payment in Payment Service (Scenario 02)
       try {
         await fetch(`${API}/api/payments/checkout`, {
           method: 'POST',
@@ -1281,7 +1765,7 @@ function BookingModal({ services, staff, preselectedService, preselectedStaff, c
         });
       } catch {}
 
-      // 3. Notification Dispatch
+      // 3. Notification Dispatch in Notification Service (Scenario 04)
       try {
         await fetch(`${API}/api/notifications/send-confirmation`, {
           method: 'POST',
@@ -1485,6 +1969,7 @@ function AddStaffModal({ onClose, onStaffAdded }) {
   const [specialties, setSpecialties] = useState('Hair, Styling');
   const [startHour, setStartHour] = useState('09:00');
   const [endHour, setEndHour] = useState('17:00');
+  const [breakTime, setBreakTime] = useState('13:00 - 14:00');
   const [saving, setSaving] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -1500,7 +1985,8 @@ function AddStaffModal({ onClose, onStaffAdded }) {
           email,
           phone,
           specialties: specs,
-          workingHours: { start: startHour, end: endHour, daysOff: [] }
+          workingHours: { start: startHour, end: endHour, daysOff: [] },
+          breakTime
         })
       });
       const data = await res.json();
@@ -1523,7 +2009,7 @@ function AddStaffModal({ onClose, onStaffAdded }) {
         <div className="modal-heading">
           <div>
             <p className="eyebrow">Team Management</p>
-            <h2>Add Stylist / Artisan</h2>
+            <h2>Add Stylist / Specialist</h2>
           </div>
           <button type="button" className="close-button" onClick={onClose}><X size={18} /></button>
         </div>
@@ -1551,14 +2037,19 @@ function AddStaffModal({ onClose, onStaffAdded }) {
 
         <div className="form-row">
           <label>
-            Working Hours Start
+            Shift Start
             <input type="time" value={startHour} onChange={e => setStartHour(e.target.value)} />
           </label>
           <label>
-            Working Hours End
+            Shift End
             <input type="time" value={endHour} onChange={e => setEndHour(e.target.value)} />
           </label>
         </div>
+
+        <label>
+          Scheduled Meal Break (e.g. 13:00 - 14:00)
+          <input value={breakTime} onChange={e => setBreakTime(e.target.value)} />
+        </label>
 
         <div className="modal-actions">
           <button type="button" className="secondary-button" onClick={onClose}>Cancel</button>
@@ -1621,6 +2112,7 @@ function NotificationDrawer({ isOpen, onClose, logs, onRefresh }) {
   );
 }
 
+// SCENARIO 04: Authentication Modal supporting 4 Target Actors
 function AuthModal({ initialTab = 'login', onClose, onAuthSuccess }) {
   const [tab, setTab] = useState(initialTab);
   const [email, setEmail] = useState('');
@@ -1647,7 +2139,7 @@ function AuthModal({ initialTab = 'login', onClose, onAuthSuccess }) {
     setPassword(testPassword);
     setConfirmPassword(testPassword);
     setError('');
-    setInfoNote(`Prefilled ${roleName} test credentials. Click "Sign In" to authenticate.`);
+    setInfoNote(`Prefilled ${roleName} credentials. Click "Sign In" to authenticate.`);
   };
 
   const handleSubmit = async (e) => {
@@ -1703,11 +2195,11 @@ function AuthModal({ initialTab = 'login', onClose, onAuthSuccess }) {
 
   return (
     <div className="modal-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" style={{ maxWidth: '440px' }}>
+      <div className="modal" style={{ maxWidth: '460px' }}>
         <div className="modal-heading">
           <div>
-            <p className="eyebrow">Security & Access</p>
-            <h2>{tab === 'login' ? 'Sign In to Luxe Salon' : 'Create an Account'}</h2>
+            <p className="eyebrow">GlowSync Security & Access</p>
+            <h2>{tab === 'login' ? 'Sign In to GlowSync' : 'Create an Account'}</h2>
           </div>
           <button type="button" className="close-button" onClick={onClose}><X size={18} /></button>
         </div>
@@ -1738,7 +2230,7 @@ function AuthModal({ initialTab = 'login', onClose, onAuthSuccess }) {
             >
               <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <KeyRound size={13} color="#8a7bd8" />
-                <span>Evaluation Test Accounts</span>
+                <span>Target Actor Presets (4 Roles)</span>
               </span>
               <ChevronDown
                 size={13}
@@ -1753,30 +2245,38 @@ function AuthModal({ initialTab = 'login', onClose, onAuthSuccess }) {
                 <p style={{ margin: '0 0 8px', fontSize: '10px', color: '#666', lineHeight: '1.4' }}>
                   Click an authorized role below to <strong>pre-fill form inputs</strong>. You must still click <em>Sign In</em> to verify credentials:
                 </p>
-                <div className="demo-buttons-grid">
+                <div className="demo-buttons-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
                   <button
                     type="button"
                     className="demo-pill-btn"
-                    onClick={() => prefillTestCredentials('owner@luxesalon.com', 'admin123', 'Owner')}
+                    onClick={() => prefillTestCredentials('owner@glowsync.com', 'admin123', 'Owner')}
                   >
                     👑 Owner
-                    <span>Sarah Olsen</span>
+                    <span>Sarah</span>
                   </button>
                   <button
                     type="button"
                     className="demo-pill-btn"
-                    onClick={() => prefillTestCredentials('stylist@luxesalon.com', 'stylist123', 'Stylist')}
+                    onClick={() => prefillTestCredentials('reception@glowsync.com', 'reception123', 'Receptionist')}
+                  >
+                    📋 Desk
+                    <span>Chloe</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="demo-pill-btn"
+                    onClick={() => prefillTestCredentials('stylist@glowsync.com', 'stylist123', 'Stylist')}
                   >
                     ✂️ Stylist
-                    <span>Elena Rostova</span>
+                    <span>Elena</span>
                   </button>
                   <button
                     type="button"
                     className="demo-pill-btn"
-                    onClick={() => prefillTestCredentials('client@luxesalon.com', 'client123', 'Client')}
+                    onClick={() => prefillTestCredentials('client@glowsync.com', 'client123', 'Client')}
                   >
                     💎 Client
-                    <span>Alice Walker</span>
+                    <span>Alice</span>
                   </button>
                 </div>
               </div>
@@ -1812,11 +2312,12 @@ function AuthModal({ initialTab = 'login', onClose, onAuthSuccess }) {
               </label>
 
               <label>
-                Account Role
+                Account Role (Target Actors)
                 <select value={role} onChange={(e) => setRole(e.target.value)}>
-                  <option value="customer">Client / Customer (Book appointments)</option>
-                  <option value="stylist">Stylist (Service provider)</option>
-                  <option value="admin">Salon Director / Admin</option>
+                  <option value="customer">Client / Customer (Book & Pay)</option>
+                  <option value="stylist">Salon Stylist / Specialist (Roster & Treatment)</option>
+                  <option value="receptionist">Salon Receptionist / Staff (Walk-ins & POS)</option>
+                  <option value="admin">Salon Owner / Administrator (Catalogs & Analytics)</option>
                 </select>
               </label>
 
@@ -1837,7 +2338,7 @@ function AuthModal({ initialTab = 'login', onClose, onAuthSuccess }) {
             <input
               required
               type="email"
-              placeholder="name@example.com"
+              placeholder="name@glowsync.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
