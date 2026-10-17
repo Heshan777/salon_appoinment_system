@@ -1,43 +1,60 @@
-# 💈 Salon Management System (Cloud-Native Microservices)
+# 💈 SalonSync – Cloud-Based Salon Appointment Management System
+### ITS4243 – Microservices and Cloud Computing | Assignment 01
+**Student Index Numbers:** `ICT/22/946` | `ICT/22/941` | `ICT/22/846`  
+**Domain:** Beauty and Personal Care Services  
 
-A distributed, containerized microservices architecture built with **Node.js**, **Docker**, **Render**, **MongoDB Atlas**, **Supabase**, and **Google Gemini AI**.
+---
+
+## 📖 Executive Summary & Academic Alignment
+**SalonSync** is a distributed, containerized microservices platform deployed to cloud infrastructure. Built to solve double-bookings, manual scheduling confusion, and untracked payments in traditional beauty parlors and salons, the system strictly implements a decoupled, cloud-ready microservices architecture with an API Gateway, real-time database persistence with MongoDB Atlas and Supabase, and autonomous AI scheduling capabilities.
+
+### Microservices Directory (8 Services)
+
+| Microservice | Port | Description | Architecture / Datastore |
+| :--- | :--- | :--- | :--- |
+| **API Gateway** | `5000` | Unified entry point, reverse proxy, CORS & route dispatching | Express / `http-proxy-middleware` |
+| **Auth Service** | `5001` | JWT identity management & RBAC for Customers, Staff, and Owners | **Supabase** / Cryptographic JWT |
+| **Booking Service** | `5002` | Appointment scheduling, calendar reservation & conflict engine | **MongoDB Atlas** (`salon_bookings`) |
+| **Catalog Service** | `5003` | Treatment catalog, pricing master data, and staff roster | **MongoDB Atlas** (`salon_catalog`) |
+| **Payment Service** | `5004` | Advance deposits, transaction ledger, and refund engine | In-memory ledger / Stripe-ready |
+| **Notification Service** | `5005` | Real-time SMS & Email dispatch for booking events and reminders | Asynchronous Event Dispatcher |
+| **AI Assistant / Agent** | `5006` | Autonomous conversational concierge & multi-turn tool calling | **Google Gemini AI** (`gemini-3.8-flash`) |
+| **Inventory Service** | `5007` | Stock management, low-supply alerts & treatment consumables | Central Warehouse Ledger |
+
+---
+
+## 🎯 Target Users & 5 Core Business Scenarios Satisfaction
+
+| Assignment Scenario | Target Actors | Core Microservices | Implementation Status |
+| :--- | :--- | :--- | :---: |
+| **Scenario 01: Customer Books an Appointment** | Customer | `catalog-service` (5003), `booking-service` (5002) | ✅ **100% Satisfied** |
+| **Scenario 02: Salon Owner Manages Services** | Salon Owner / Admin | `catalog-service` (5003) | ✅ **100% Satisfied** |
+| **Scenario 03: Salon Staff Manages Appointments** | Salon Staff, Specialist | `booking-service` (5002), `inventory-service` (5007) | ✅ **100% Satisfied** |
+| **Scenario 04: Customer Makes a Payment** | Customer, Owner | `payment-service` (5004), `booking-service` (5002) | ✅ **100% Satisfied** |
+| **Scenario 05: Customer Receives Notifications** | Customer, Staff | `notification-service` (5005) | ✅ **100% Satisfied** |
 
 ---
 
 ## 🏗️ Architecture Overview
 
-The system is partitioned into autonomous microservices connected through an **API Gateway** reverse proxy:
-
 ```
-                            [ Client / Postman / Web UI ]
-                                          │
-                                          ▼
-                            ┌───────────────────────────┐
-                            │    API Gateway (:5000)    │
-                            │   (Reverse Proxy / CORS)  │
-                            └─────────────┬─────────────┘
-                                          │
-    ┌────────────────┬────────────────────┼───────────────────┬────────────────┐
-    ▼                ▼                    ▼                   ▼                ▼
-┌──────────────┐ ┌──────────────┐ ┌───────────────┐ ┌────────────────┐ ┌──────────────┐
-│ Auth Service │ │Booking Service││Catalog Service│ │Payment Service │ │AI Assistant  │
-│    (:5001)   │ │   (:5002)    │ │    (:5003)    │ │    (:5004)     │ │   (:5006)    │
-└──────┬───────┘ └──────┬───────┘ └───────┬───────┘ └────────────────┘ └──────┬───────┘
-       │                │                 │                                    │
-  [Supabase]      [MongoDB Atlas]   [MongoDB Atlas]                      [Google Gemini]
+                                [ Client Browser / Web UI / Postman ]
+                                                  │
+                                                  ▼
+                                    ┌───────────────────────────┐
+                                    │    API Gateway (:5000)    │
+                                    │   (Reverse Proxy / CORS)  │
+                                    └─────────────┬─────────────┘
+                                                  │
+    ┌────────────────┬────────────────────┬───────┴───────────┬───────────────────┬────────────────┬────────────────┐
+    ▼                ▼                    ▼                   ▼                   ▼                ▼                ▼
+┌──────────────┐ ┌──────────────┐ ┌───────────────┐ ┌────────────────┐ ┌────────────────────┐ ┌──────────────┐ ┌───────────────┐
+│ Auth Service │ │Booking Service││Catalog Service│ │Payment Service │ │Notification Service│ │AI Assistant  │ │Inventory Svc  │
+│    (:5001)   │ │   (:5002)    │ │    (:5003)    │ │    (:5004)     │ │      (:5005)       │ │   (:5006)    │ │    (:5007)    │
+└──────┬───────┘ └──────┬───────┘ └───────┬───────┘ └────────────────┘ └────────────────────┘ └──────┬───────┘ └───────────────┘
+       │                │                 │                                                            │
+  [Supabase]      [MongoDB Atlas]   [MongoDB Atlas]                                              [Google Gemini]
 ```
-
-### Microservices Directory
-
-| Microservice | Port | Description | Database / Provider |
-| :--- | :--- | :--- | :--- |
-| **API Gateway** | `5000` | Single entry point, routing, rate-limiting & reverse proxy | None |
-| **Auth Service** | `5001` | User registration, authentication, RBAC (customer, stylist, admin) | **Supabase** & JWT fallback |
-| **Booking Service** | `5002` | Appointments, calendar slots, conflict detection | **MongoDB Atlas** (`Appointment`) |
-| **Catalog Service** | `5003` | Salon services, category pricing, staff availability | **MongoDB Atlas** (`Service`, `Staff`) |
-| **Payment Service** | `5004` | Transactions, checkout processing, invoice status | Stripe / Mock Transaction Ledger |
-| **Notification Service** | `5005` | SMS & Email dispatching for booking confirmations & reminders | Event Logger / SMTP |
-| **AI Assistant** | `5006` | Smart scheduling concierge & intent/slot entity extraction | **Google Gemini AI** (`@google/genai`) |
 
 ---
 
@@ -124,7 +141,16 @@ All requests can be routed through the **API Gateway** (`http://localhost:5000`)
 
 ### 7. Gemini AI Assistant Service (`/api/ai`)
 - `POST /api/ai/chat` - Conversational concierge for service & styling recommendations
+- `POST /api/ai/agent` - Autonomous Multi-Turn Tool Calling Orchestrator
 - `POST /api/ai/parse-intent` - Autonomous NLP slot extraction (turns raw prompts like *"I want a haircut with Sarah tomorrow at 3pm"* into structured booking JSON)
+- `POST /api/ai/tools/execute` - Direct microservice tool execution
+
+### 8. Inventory & Consumables Service (`/api/inventory`)
+- `GET /api/inventory/health` - Inventory microservice health check
+- `GET /api/inventory` - Central product stock levels, inventory valuation & low-stock alerts
+- `POST /api/inventory/consume` - Deduct consumables (e.g., hair toner, keratin, scalp oil) upon service completion
+- `POST /api/inventory/restock` - Add supply quantities to warehouse items
+- `GET /api/inventory/logs` - Audit history of consumed salon products
 
 ---
 
