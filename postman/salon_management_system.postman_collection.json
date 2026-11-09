@@ -1,0 +1,270 @@
+{
+  "info": {
+    "_postman_id": "salon-mgmt-collection-v1",
+    "name": "Salon Management System - Microservices API",
+    "description": "Comprehensive Postman collection for testing Salon Management System microservices via API Gateway or directly.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Gateway Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "1. Authentication (Supabase / Auth Service)",
+      "item": [
+        {
+          "name": "Register Customer / Stylist",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"securePassword123!\",\n  \"fullName\": \"Jane Doe\",\n  \"role\": \"customer\",\n  \"phone\": \"+15550143\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"securePassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Get Profile (Protected)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "profile"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Catalog & Staff",
+      "item": [
+        {
+          "name": "List All Services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/catalog/services",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "catalog", "services"]
+            }
+          }
+        },
+        {
+          "name": "Create Service Item",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Balayage Hair Color Treatment\",\n  \"category\": \"Hair\",\n  \"durationMinutes\": 120,\n  \"price\": 140,\n  \"description\": \"Custom balayage highlight and toning\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/catalog/services",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "catalog", "services"]
+            }
+          }
+        },
+        {
+          "name": "List Staff / Stylists",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/catalog/staff",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "catalog", "staff"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Booking & Scheduling",
+      "item": [
+        {
+          "name": "List Appointments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bookings"]
+            }
+          }
+        },
+        {
+          "name": "Create Appointment",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"Jane Doe\",\n  \"customerEmail\": \"customer@example.com\",\n  \"customerPhone\": \"+15550143\",\n  \"serviceId\": \"srv_1\",\n  \"serviceName\": \"Classic Haircut & Styling\",\n  \"staffId\": \"stf_1\",\n  \"staffName\": \"Sarah Jenkins\",\n  \"appointmentDate\": \"2026-10-15T14:30:00.000Z\",\n  \"durationMinutes\": 45,\n  \"totalPrice\": 35,\n  \"notes\": \"Prefers warm rinse\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bookings"]
+            }
+          }
+        },
+        {
+          "name": "Update Appointment Status",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"completed\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings/apt_sample_1/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bookings", "apt_sample_1", "status"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Payments & Billing",
+      "item": [
+        {
+          "name": "Process Checkout Payment",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appointmentId\": \"apt_sample_1\",\n  \"customerEmail\": \"customer@example.com\",\n  \"amount\": 35,\n  \"currency\": \"USD\",\n  \"paymentMethod\": \"card\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/payments/checkout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments", "checkout"]
+            }
+          }
+        },
+        {
+          "name": "Lookup Transactions for Appointment",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/payments/transactions/apt_sample_1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments", "transactions", "apt_sample_1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Notifications",
+      "item": [
+        {
+          "name": "Dispatch Booking Confirmation",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipientEmail\": \"customer@example.com\",\n  \"recipientPhone\": \"+15550143\",\n  \"customerName\": \"Jane Doe\",\n  \"serviceName\": \"Classic Haircut & Styling\",\n  \"staffName\": \"Sarah Jenkins\",\n  \"appointmentDate\": \"2026-10-15 at 2:30 PM\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/send-confirmation",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notifications", "send-confirmation"]
+            }
+          }
+        },
+        {
+          "name": "View Notification Logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/logs",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notifications", "logs"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Gemini AI Assistant",
+      "item": [
+        {
+          "name": "Conversational Salon Assistant",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Hi! Can you recommend a relaxing facial treatment and tell me who specializes in skincare?\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ai/chat",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ai", "chat"]
+            }
+          }
+        },
+        {
+          "name": "Autonomous Intent & Slot Extraction",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"I'd like to book a classic haircut with Sarah tomorrow afternoon around 3pm\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ai/parse-intent",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ai", "parse-intent"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
