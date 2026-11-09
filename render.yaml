@@ -1,0 +1,128 @@
+services:
+  # ==========================================
+  # API Gateway (Public Web Service)
+  # ==========================================
+  - type: web
+    name: salon-api-gateway
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    rootDir: services/api-gateway
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: AUTH_SERVICE_URL
+        fromService:
+          type: web
+          name: salon-auth-service
+          property: host
+      - key: BOOKING_SERVICE_URL
+        fromService:
+          type: web
+          name: salon-booking-service
+          property: host
+      - key: CATALOG_SERVICE_URL
+        fromService:
+          type: web
+          name: salon-catalog-service
+          property: host
+      - key: PAYMENT_SERVICE_URL
+        fromService:
+          type: web
+          name: salon-payment-service
+          property: host
+      - key: NOTIFICATION_SERVICE_URL
+        fromService:
+          type: web
+          name: salon-notification-service
+          property: host
+      - key: AI_SERVICE_URL
+        fromService:
+          type: web
+          name: salon-ai-service
+          property: host
+
+  # ==========================================
+  # Auth Service
+  # ==========================================
+  - type: web
+    name: salon-auth-service
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    rootDir: services/auth-service
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+
+  # ==========================================
+  # Booking Service
+  # ==========================================
+  - type: web
+    name: salon-booking-service
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    rootDir: services/booking-service
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+
+  # ==========================================
+  # Catalog Service
+  # ==========================================
+  - type: web
+    name: salon-catalog-service
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    rootDir: services/catalog-service
+    envVars:
+      - key: MONGODB_CATALOG_URI
+        sync: false
+
+  # ==========================================
+  # Payment Service
+  # ==========================================
+  - type: web
+    name: salon-payment-service
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    rootDir: services/payment-service
+
+  # ==========================================
+  # Notification Service
+  # ==========================================
+  - type: web
+    name: salon-notification-service
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    rootDir: services/notification-service
+
+  # ==========================================
+  # Gemini AI Assistant Service
+  # ==========================================
+  - type: web
+    name: salon-ai-service
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    rootDir: services/ai-assistant-service
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash

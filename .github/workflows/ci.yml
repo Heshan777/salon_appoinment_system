@@ -1,0 +1,41 @@
+name: Microservices CI & Code Quality
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  validate-services:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service:
+          - api-gateway
+          - auth-service
+          - booking-service
+          - catalog-service
+          - payment-service
+          - notification-service
+          - ai-assistant-service
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: 'services/${{ matrix.service }}/package.json'
+
+      - name: Install Service Dependencies
+        run: |
+          cd services/${{ matrix.service }}
+          npm install
+
+      - name: Lint and Syntax Validation
+        run: |
+          node -c services/${{ matrix.service }}/src/*.js

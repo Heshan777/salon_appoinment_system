@@ -1,0 +1,162 @@
+version: '3.8'
+
+services:
+  # ---------------------------------------------
+  # Local MongoDB Container (or use MongoDB Atlas)
+  # ---------------------------------------------
+  mongo:
+    image: mongo:7.0
+    container_name: salon_mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - salon-network
+
+  # ---------------------------------------------
+  # API Gateway (Reverse Proxy Entrypoint)
+  # ---------------------------------------------
+  api-gateway:
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
+    container_name: salon_api_gateway
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - AUTH_SERVICE_URL=http://auth-service:5001
+      - BOOKING_SERVICE_URL=http://booking-service:5002
+      - CATALOG_SERVICE_URL=http://catalog-service:5003
+      - PAYMENT_SERVICE_URL=http://payment-service:5004
+      - NOTIFICATION_SERVICE_URL=http://notification-service:5005
+      - AI_SERVICE_URL=http://ai-assistant-service:5006
+    depends_on:
+      - auth-service
+      - booking-service
+      - catalog-service
+      - payment-service
+      - notification-service
+      - ai-assistant-service
+    networks:
+      - salon-network
+
+  # ---------------------------------------------
+  # Auth Service (Supabase Integration)
+  # ---------------------------------------------
+  auth-service:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile
+    container_name: salon_auth_service
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    environment:
+      - AUTH_PORT=5001
+      - SUPABASE_URL=${SUPABASE_URL:-}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY:-}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY:-}
+      - JWT_SECRET=${JWT_SECRET:-salon_dev_jwt_secret}
+    networks:
+      - salon-network
+
+  # ---------------------------------------------
+  # Booking & Scheduling Service
+  # ---------------------------------------------
+  booking-service:
+    build:
+      context: ./services/booking-service
+      dockerfile: Dockerfile
+    container_name: salon_booking_service
+    restart: unless-stopped
+    ports:
+      - "5002:5002"
+    environment:
+      - BOOKING_PORT=5002
+      - MONGODB_URI=mongodb://mongo:27017/salon_bookings
+    depends_on:
+      - mongo
+    networks:
+      - salon-network
+
+  # ---------------------------------------------
+  # Salon Catalog & Staff Service
+  # ---------------------------------------------
+  catalog-service:
+    build:
+      context: ./services/catalog-service
+      dockerfile: Dockerfile
+    container_name: salon_catalog_service
+    restart: unless-stopped
+    ports:
+      - "5003:5003"
+    environment:
+      - CATALOG_PORT=5003
+      - MONGODB_CATALOG_URI=mongodb://mongo:27017/salon_catalog
+    depends_on:
+      - mongo
+    networks:
+      - salon-network
+
+  # ---------------------------------------------
+  # Payment Microservice
+  # ---------------------------------------------
+  payment-service:
+    build:
+      context: ./services/payment-service
+      dockerfile: Dockerfile
+    container_name: salon_payment_service
+    restart: unless-stopped
+    ports:
+      - "5004:5004"
+    environment:
+      - PAYMENT_PORT=5004
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-}
+    networks:
+      - salon-network
+
+  # ---------------------------------------------
+  # Notification Microservice
+  # ---------------------------------------------
+  notification-service:
+    build:
+      context: ./services/notification-service
+      dockerfile: Dockerfile
+    container_name: salon_notification_service
+    restart: unless-stopped
+    ports:
+      - "5005:5005"
+    environment:
+      - NOTIFICATION_PORT=5005
+    networks:
+      - salon-network
+
+  # ---------------------------------------------
+  # Gemini AI Assistant Microservice
+  # ---------------------------------------------
+  ai-assistant-service:
+    build:
+      context: ./services/ai-assistant-service
+      dockerfile: Dockerfile
+    container_name: salon_ai_assistant_service
+    restart: unless-stopped
+    ports:
+      - "5006:5006"
+    environment:
+      - AI_PORT=5006
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}
+    networks:
+      - salon-network
+
+networks:
+  salon-network:
+    driver: bridge
+
+volumes:
+  mongo_data:
+    driver: local
