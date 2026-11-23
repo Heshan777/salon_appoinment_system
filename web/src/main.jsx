@@ -456,54 +456,34 @@ function App() {
     { label: 'Financials', icon: DollarSign, count: transactions.length },
     { label: 'Aura AI', icon: MessageSquare },
     { label: 'System Status', icon: Activity }
-  ];  // Default Entry Screen: If not authenticated, render dedicated full-screen Sign Up / Sign In page
+  ];    // Default Entry Screen: Focused, super-level UI/UX Sign Up / Sign In page (Left banner removed)
   if (!user) {
     return (
-      <div className="auth-page-wrapper">
-        <div className="auth-hero-banner">
-          <div className="auth-hero-brand">
-            <div className="brand-mark" style={{ background: '#6257c3', width: '38px', height: '38px', borderRadius: '10px', display: 'grid', placeItems: 'center', color: '#fff', fontWeight: 700, fontSize: '18px' }}>G</div>
-            <div>
-              <strong style={{ fontSize: '18px', letterSpacing: '-0.02em', display: 'block' }}>GlowSync</strong>
-              <span style={{ fontSize: '11px', color: '#a6a0b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Cloud Salon & Spa</span>
+      <div className="auth-simple-page">
+        <div className="auth-simple-container">
+          <div className="auth-simple-brand">
+            <div className="brand-mark" style={{ background: '#6257c3', width: '42px', height: '42px', borderRadius: '12px', display: 'grid', placeItems: 'center', color: '#fff', fontWeight: 700, fontSize: '20px', boxShadow: '0 6px 18px rgba(98, 87, 195, 0.35)' }}>G</div>
+            <div style={{ textAlign: 'left' }}>
+              <strong style={{ fontSize: '22px', letterSpacing: '-0.02em', display: 'block', color: '#1a1926', fontFamily: 'Playfair Display, serif', lineHeight: 1.1 }}>GlowSync</strong>
+              <span style={{ fontSize: '10px', color: '#8c869b', textTransform: 'uppercase', letterSpacing: '0.14em', fontWeight: 600 }}>Cloud Salon & Spa Platform</span>
             </div>
           </div>
-          <div className="auth-hero-content">
-            <p className="eyebrow" style={{ color: '#dfbd68', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Personal Care & Wellness Cloud</p>
-            <h2>Welcome to <span>GlowSync</span> Salon Experience</h2>
-            <p>
-              Create an account to browse boutique salon treatments, check live specialist availability, and schedule conflict-free appointments online across 8 distributed cloud microservices.
-            </p>
-            <div className="auth-features-list">
-              <div className="auth-feature-item">
-                <div className="auth-feature-icon">✦</div>
-                <span>Autonomous AI Scheduling & Live Conflict Resolution</span>
-              </div>
-              <div className="auth-feature-item">
-                <div className="auth-feature-icon">✂️</div>
-                <span>Specialist Availability & Master Roster Management</span>
-              </div>
-              <div className="auth-feature-item">
-                <div className="auth-feature-icon">🛡️</div>
-                <span>256-Bit SSL JWT Authentication for all 4 Core Actors</span>
-              </div>
-              <div className="auth-feature-item">
-                <div className="auth-feature-icon">💳</div>
-                <span>Automated Deposit Processing & Digital Tax Invoices</span>
-              </div>
-            </div>
+
+          <div className="auth-simple-card">
+            <AuthCard
+              initialTab="register"
+              onAuthSuccess={handleAuthSuccess}
+              isModal={false}
+            />
           </div>
-          <div className="auth-hero-footer">
+
+          <div className="auth-simple-footer">
             <span>ITS4243 Microservices Architecture</span>
-            <span>Cloud Deployment Ready</span>
+            <span>•</span>
+            <span>8 Distributed Services</span>
+            <span>•</span>
+            <span>256-Bit SSL Secured</span>
           </div>
-        </div>
-        <div className="auth-card-container">
-          <AuthCard
-            initialTab="register"
-            onAuthSuccess={handleAuthSuccess}
-            isModal={false}
-          />
         </div>
         {toast && <div className="toast"><span>✓</span>{toast}</div>}
       </div>
@@ -2250,14 +2230,14 @@ function AuthCard({ initialTab = 'register', onClose, onAuthSuccess, isModal = f
 
   const formElement = (
     <div className={isModal ? "modal-body-wrap" : "auth-card-body"}>
-      <div className="auth-card-heading">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+      <div className="auth-card-heading" style={{ textAlign: isModal ? 'left' : 'center', marginBottom: '22px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: isModal ? 'space-between' : 'center', marginBottom: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6257c3', background: '#eeedfb', padding: '3px 8px', borderRadius: '6px' }}>
               {tab === 'register' ? 'Join GlowSync' : 'Welcome Back'}
             </span>
             <span style={{ fontSize: '11px', color: '#8c869b' }}>•</span>
-            <span style={{ fontSize: '11px', color: '#8c869b' }}>Microservices Cloud</span>
+            <span style={{ fontSize: '11px', color: '#8c869b' }}>Personal Care & Wellness</span>
           </div>
           {isModal && (
             <button type="button" className="close-button" onClick={onClose}><X size={18} /></button>
@@ -2266,7 +2246,7 @@ function AuthCard({ initialTab = 'register', onClose, onAuthSuccess, isModal = f
         <h2 style={{ fontFamily: 'Playfair Display, Georgia, serif', fontSize: isModal ? '24px' : '28px', margin: '0 0 8px', color: '#1a1926', fontWeight: 600 }}>
           {tab === 'register' ? 'Create an Account' : 'Sign In to GlowSync'}
         </h2>
-        <p style={{ color: '#6d6878', fontSize: '13px', margin: 0, lineHeight: 1.5 }}>
+        <p style={{ color: '#6d6878', fontSize: '13px', margin: 0, lineHeight: 1.5, maxWidth: '420px', marginLeft: 'auto', marginRight: 'auto' }}>
           {tab === 'register'
             ? 'Register your profile to browse treatments, schedule appointments, or manage salon operations.'
             : 'Enter your credentials below or select an authorized actor preset to sign in.'}
