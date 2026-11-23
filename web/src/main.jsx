@@ -2166,7 +2166,7 @@ function NotificationDrawer({ isOpen, onClose, logs, onRefresh }) {
   );
 }
 
-// SCENARIO 04: Authentication Card & Modal supporting 4 Target Actors
+// SCENARIO 04: Professional, Clean Authentication Card & Modal
 function AuthCard({ initialTab = 'register', onClose, onAuthSuccess, isModal = false }) {
   const [tab, setTab] = useState(initialTab);
   const [email, setEmail] = useState('');
@@ -2194,7 +2194,7 @@ function AuthCard({ initialTab = 'register', onClose, onAuthSuccess, isModal = f
     setPassword(testPassword);
     setConfirmPassword(testPassword);
     setError('');
-    setInfoNote(`Prefilled ${roleName} credentials. Click "Sign In" to authenticate.`);
+    setInfoNote(`Prefilled ${roleName} credentials. Click "Sign In" below to authenticate.`);
   };
 
   const handleSubmit = async (e) => {
@@ -2248,101 +2248,103 @@ function AuthCard({ initialTab = 'register', onClose, onAuthSuccess, isModal = f
     }
   };
 
-  const cardContent = (
-    <div className={isModal ? "modal" : "auth-card-body"} style={isModal ? { maxWidth: '460px' } : { width: '100%', maxWidth: '440px', margin: '0 auto' }}>
-      <div className={isModal ? "modal-heading" : "auth-card-heading"} style={!isModal ? { marginBottom: '20px' } : {}}>
-        <div>
-          <p className="eyebrow" style={{ color: '#6257c3', fontWeight: 600, letterSpacing: '0.06em', marginBottom: '4px' }}>
-            {tab === 'register' ? 'JOIN GLOWSYNC' : 'GLOWSYNC SECURITY & ACCESS'}
-          </p>
-          <h2 style={{ fontFamily: 'Playfair Display, Georgia, serif', fontSize: isModal ? '22px' : '26px', margin: '0 0 6px', color: '#1a1926' }}>
-            {tab === 'login' ? 'Sign In to GlowSync' : 'Create an Account'}
-          </h2>
-          {!isModal && (
-            <p style={{ color: '#666', fontSize: '13px', margin: '0', lineHeight: '1.4' }}>
-              {tab === 'register'
-                ? 'Sign up to discover luxury treatments, book appointments, or manage salon operations.'
-                : 'Enter your credentials below or select an authorized actor preset to sign in.'}
-            </p>
+  const formElement = (
+    <div className={isModal ? "modal-body-wrap" : "auth-card-body"}>
+      <div className="auth-card-heading">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6257c3', background: '#eeedfb', padding: '3px 8px', borderRadius: '6px' }}>
+              {tab === 'register' ? 'Join GlowSync' : 'Welcome Back'}
+            </span>
+            <span style={{ fontSize: '11px', color: '#8c869b' }}>•</span>
+            <span style={{ fontSize: '11px', color: '#8c869b' }}>Microservices Cloud</span>
+          </div>
+          {isModal && (
+            <button type="button" className="close-button" onClick={onClose}><X size={18} /></button>
           )}
         </div>
-        {isModal && (
-          <button type="button" className="close-button" onClick={onClose}><X size={18} /></button>
-        )}
+        <h2 style={{ fontFamily: 'Playfair Display, Georgia, serif', fontSize: isModal ? '24px' : '28px', margin: '0 0 8px', color: '#1a1926', fontWeight: 600 }}>
+          {tab === 'register' ? 'Create an Account' : 'Sign In to GlowSync'}
+        </h2>
+        <p style={{ color: '#6d6878', fontSize: '13px', margin: 0, lineHeight: 1.5 }}>
+          {tab === 'register'
+            ? 'Register your profile to browse treatments, schedule appointments, or manage salon operations.'
+            : 'Enter your credentials below or select an authorized actor preset to sign in.'}
+        </p>
       </div>
 
-      <div className="auth-tabs">
+      <div className="auth-segmented-tabs">
         <button
           type="button"
-          className={`auth-tab ${tab === 'register' ? 'active' : ''}`}
+          className={`auth-segmented-tab ${tab === 'register' ? 'active' : ''}`}
           onClick={() => switchTab('register')}
         >
           Create Account
         </button>
         <button
           type="button"
-          className={`auth-tab ${tab === 'login' ? 'active' : ''}`}
+          className={`auth-segmented-tab ${tab === 'login' ? 'active' : ''}`}
           onClick={() => switchTab('login')}
         >
           Sign In
         </button>
       </div>
 
-      <div className="auth-helper-section" style={{ marginBottom: '16px' }}>
+      <div className="auth-presets-card">
         <button
           type="button"
-          className="auth-helper-toggle"
+          className="auth-presets-header"
           onClick={() => setShowDemoGuide(!showDemoGuide)}
         >
-          <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <KeyRound size={13} color="#8a7bd8" />
+          <span style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+            <KeyRound size={14} color="#756bd2" />
             <span>Target Actor Presets (4 Roles)</span>
           </span>
           <ChevronDown
-            size={13}
+            size={14}
             style={{
               transform: showDemoGuide ? 'rotate(180deg)' : 'none',
-              transition: 'transform 0.2s'
+              transition: 'transform 0.2s ease'
             }}
           />
         </button>
         {showDemoGuide && (
-          <div className="auth-helper-dropdown">
-            <p style={{ margin: '0 0 8px', fontSize: '10px', color: '#666', lineHeight: '1.4' }}>
+          <div style={{ marginTop: '10px' }}>
+            <p style={{ margin: '0 0 8px', fontSize: '11px', color: '#6d6878', lineHeight: 1.4 }}>
               Click any actor below to pre-fill test credentials and sign in directly:
             </p>
-            <div className="demo-buttons-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+            <div className="auth-presets-grid">
               <button
                 type="button"
-                className="demo-pill-btn"
+                className="auth-preset-btn"
                 onClick={() => prefillTestCredentials('owner@glowsync.com', 'admin123', 'Owner')}
               >
-                👑 Owner
-                <span>Sarah</span>
+                <span>👑 Owner</span>
+                <span className="sub">Sarah</span>
               </button>
               <button
                 type="button"
-                className="demo-pill-btn"
+                className="auth-preset-btn"
                 onClick={() => prefillTestCredentials('reception@glowsync.com', 'reception123', 'Receptionist')}
               >
-                📋 Desk
-                <span>Chloe</span>
+                <span>📋 Desk</span>
+                <span className="sub">Chloe</span>
               </button>
               <button
                 type="button"
-                className="demo-pill-btn"
+                className="auth-preset-btn"
                 onClick={() => prefillTestCredentials('stylist@glowsync.com', 'stylist123', 'Stylist')}
               >
-                ✂️ Stylist
-                <span>Elena</span>
+                <span>✂️ Stylist</span>
+                <span className="sub">Elena</span>
               </button>
               <button
                 type="button"
-                className="demo-pill-btn"
+                className="auth-preset-btn"
                 onClick={() => prefillTestCredentials('client@glowsync.com', 'client123', 'Client')}
               >
-                💎 Client
-                <span>Alice</span>
+                <span>💎 Client</span>
+                <span className="sub">Alice</span>
               </button>
             </div>
           </div>
@@ -2350,149 +2352,201 @@ function AuthCard({ initialTab = 'register', onClose, onAuthSuccess, isModal = f
       </div>
 
       {infoNote && (
-        <div className="auth-alert-success" style={{ fontSize: '11px', padding: '8px 12px', marginBottom: '14px' }}>
+        <div className="auth-alert-success" style={{ fontSize: '11px', padding: '10px 14px', borderRadius: '8px', marginBottom: '14px', background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#166534' }}>
           <span>ℹ️</span> {infoNote}
         </div>
       )}
 
       {error && (
-        <div className="auth-alert-error" style={{ marginBottom: '14px' }}>
+        <div className="auth-alert-error" style={{ marginBottom: '14px', padding: '10px 14px', borderRadius: '8px', background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }}>
           <AlertCircle size={15} />
           <span>{error}</span>
         </div>
       )}
 
-      <form onSubmit={handleSubmit}>
+      <form className="auth-form" onSubmit={handleSubmit}>
         {tab === 'register' && (
           <>
-            <label>
-              Full Name
-              <input
-                required
-                type="text"
-                placeholder="e.g. Charlotte Dubois"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-              />
-            </label>
+            <div className="auth-form-grid">
+              <div className="auth-field-group">
+                <label>Full Name</label>
+                <input
+                  required
+                  className="auth-input"
+                  type="text"
+                  placeholder="e.g. Charlotte Dubois"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                />
+              </div>
 
-            <label>
-              Account Role (Target Actors)
-              <select value={role} onChange={(e) => setRole(e.target.value)}>
-                <option value="customer">Client / Customer (Book & Pay)</option>
-                <option value="stylist">Salon Stylist / Specialist (Roster & Treatment)</option>
-                <option value="receptionist">Salon Receptionist / Staff (Walk-ins & POS)</option>
-                <option value="admin">Salon Owner / Administrator (Catalogs & Analytics)</option>
-              </select>
-            </label>
+              <div className="auth-field-group">
+                <label>Account Role</label>
+                <select
+                  className="auth-select"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                >
+                  <option value="customer">Client (Book & Pay)</option>
+                  <option value="stylist">Stylist (Roster & Treatment)</option>
+                  <option value="receptionist">Receptionist (Walk-ins & POS)</option>
+                  <option value="admin">Owner / Admin (Catalogs & Analytics)</option>
+                </select>
+              </div>
+            </div>
 
-            <label>
-              Phone Number
-              <input
-                type="tel"
-                placeholder="+1 (555) 019-2834"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-              />
-            </label>
+            <div className="auth-form-grid">
+              <div className="auth-field-group">
+                <label>Email Address</label>
+                <input
+                  required
+                  className="auth-input"
+                  type="email"
+                  placeholder="name@glowsync.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+
+              <div className="auth-field-group">
+                <label>Phone Number</label>
+                <input
+                  className="auth-input"
+                  type="tel"
+                  placeholder="+1 (555) 019-2834"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="auth-form-grid">
+              <div className="auth-field-group">
+                <label>
+                  <span>Password</span>
+                  <span className="hint">min. 6 chars</span>
+                </label>
+                <div className="auth-password-wrapper">
+                  <input
+                    required
+                    className="auth-input"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="auth-password-toggle"
+                    onClick={() => setShowPassword(!showPassword)}
+                    tabIndex="-1"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="auth-field-group">
+                <label>Confirm Password</label>
+                <div className="auth-password-wrapper">
+                  <input
+                    required
+                    className="auth-input"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
           </>
         )}
 
-        <label>
-          Email Address
-          <input
-            required
-            type="email"
-            placeholder="name@glowsync.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </label>
-
-        <label>
-          Password {tab === 'register' && <span style={{ fontSize: '10px', color: '#999', fontWeight: 400 }}>(min. 6 chars)</span>}
-          <div className="password-input-wrap">
-            <input
-              required
-              type={showPassword ? 'text' : 'password'}
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <button
-              type="button"
-              className="password-toggle"
-              onClick={() => setShowPassword(!showPassword)}
-              tabIndex="-1"
-            >
-              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-            </button>
-          </div>
-        </label>
-
-        {tab === 'register' && (
-          <label>
-            Confirm Password
-            <div className="password-input-wrap">
+        {tab === 'login' && (
+          <>
+            <div className="auth-field-group">
+              <label>Email Address</label>
               <input
                 required
-                type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="auth-input"
+                type="email"
+                placeholder="name@glowsync.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-          </label>
+
+            <div className="auth-field-group">
+              <label>Password</label>
+              <div className="auth-password-wrapper">
+                <input
+                  required
+                  className="auth-input"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="auth-password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                  tabIndex="-1"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+
+            <div className="auth-form-options" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '-2px' }}>
+              <label className="auth-checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', cursor: 'pointer', color: '#55515c' }}>
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                />
+                Remember me
+              </label>
+              <button
+                type="button"
+                className="auth-link"
+                style={{ background: 'none', border: 0, padding: 0, fontSize: '12px', color: '#6257c3', cursor: 'pointer' }}
+                onClick={() => setInfoNote('Password reset link sent to registered email if account exists.')}
+              >
+                Forgot password?
+              </button>
+            </div>
+          </>
         )}
 
-        {tab === 'login' && (
-          <div className="auth-form-options" style={{ marginBottom: '14px' }}>
-            <label className="auth-checkbox-label">
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-              />
-              Remember me
-            </label>
-            <button
-              type="button"
-              className="auth-link"
-              style={{ background: 'none', border: 0, padding: 0, fontSize: '11px' }}
-              onClick={() => setInfoNote('Password reset link sent to registered email if account exists.')}
-            >
-              Forgot password?
-            </button>
-          </div>
-        )}
-
-        <div className="modal-actions" style={{ marginTop: '18px' }}>
-          {isModal && (
-            <button type="button" className="secondary-button" onClick={onClose}>
-              Cancel
-            </button>
-          )}
+        <div style={{ marginTop: '10px' }}>
           <button
             type="submit"
-            className="primary-button"
+            className="auth-submit-btn"
             disabled={loading}
-            style={{ width: isModal ? 'auto' : '100%', minWidth: '120px', justifyContent: 'center' }}
           >
-            {loading ? 'Verifying...' : (tab === 'login' ? 'Sign In' : 'Create Account')}
+            {loading ? (
+              <span>Verifying credentials...</span>
+            ) : tab === 'login' ? (
+              <><span>Sign In to Platform</span> <ArrowUpRight size={15} /></>
+            ) : (
+              <><span>Create Account</span> <ArrowUpRight size={15} /></>
+            )}
           </button>
         </div>
       </form>
 
-      <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '12px', color: '#888' }}>
+      <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '12px', color: '#736f80' }}>
         {tab === 'login' ? (
-          <span>Don't have an account? <button type="button" onClick={() => switchTab('register')} style={{ background: 'none', border: 0, color: '#6257c3', fontWeight: 600, cursor: 'pointer', padding: 0 }}>Create account</button></span>
+          <span>Don't have an account? <button type="button" onClick={() => switchTab('register')} style={{ background: 'none', border: 0, color: '#6257c3', fontWeight: 600, cursor: 'pointer', padding: '0 2px' }}>Create an account</button></span>
         ) : (
-          <span>Already registered? <button type="button" onClick={() => switchTab('login')} style={{ background: 'none', border: 0, color: '#6257c3', fontWeight: 600, cursor: 'pointer', padding: 0 }}>Sign in</button></span>
+          <span>Already registered? <button type="button" onClick={() => switchTab('login')} style={{ background: 'none', border: 0, color: '#6257c3', fontWeight: 600, cursor: 'pointer', padding: '0 2px' }}>Sign in</button></span>
         )}
       </div>
 
-      <div className="auth-security-badge" style={{ marginTop: '20px' }}>
-        <Lock size={12} />
+      <div className="auth-security-badge" style={{ marginTop: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '11px', color: '#9793a3', borderTop: '1px solid #ebe8f0', paddingTop: '14px' }}>
+        <Lock size={12} color="#756bd2" />
         <span>256-Bit SSL Encrypted • JWT Cryptographic Verification</span>
       </div>
     </div>
@@ -2501,12 +2555,14 @@ function AuthCard({ initialTab = 'register', onClose, onAuthSuccess, isModal = f
   if (isModal) {
     return (
       <div className="modal-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-        {cardContent}
+        <div className="modal" style={{ maxWidth: '480px', padding: '28px' }}>
+          {formElement}
+        </div>
       </div>
     );
   }
 
-  return cardContent;
+  return formElement;
 }
 
 createRoot(document.getElementById('root')).render(<App />);
