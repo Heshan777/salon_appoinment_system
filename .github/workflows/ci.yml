@@ -2,12 +2,13 @@ name: Microservices CI & Code Quality
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, dev ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, dev ]
 
 jobs:
   validate-services:
+    name: Lint & Syntax Check Microservices
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -19,6 +20,7 @@ jobs:
           - payment-service
           - notification-service
           - ai-assistant-service
+          - inventory-service
 
     steps:
       - name: Checkout Code
@@ -39,3 +41,23 @@ jobs:
       - name: Lint and Syntax Validation
         run: |
           node -c services/${{ matrix.service }}/src/*.js
+
+  build-frontend:
+    name: Build & Verify Web Frontend (Vite)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Workspace Dependencies
+        run: |
+          npm install
+
+      - name: Build Web Application
+        run: |
+          npm --workspace=web run build

@@ -42,6 +42,11 @@ services:
           type: web
           name: salon-ai-service
           property: host
+      - key: INVENTORY_SERVICE_URL
+        fromService:
+          type: web
+          name: salon-inventory-service
+          property: host
 
   # ==========================================
   # Auth Service
@@ -59,6 +64,8 @@ services:
       - key: SUPABASE_ANON_KEY
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: JWT_SECRET
         sync: false
 
   # ==========================================
@@ -99,6 +106,9 @@ services:
     buildCommand: npm install
     startCommand: npm start
     rootDir: services/payment-service
+    envVars:
+      - key: STRIPE_SECRET_KEY
+        sync: false
 
   # ==========================================
   # Notification Service
@@ -126,3 +136,17 @@ services:
         sync: false
       - key: GEMINI_MODEL
         value: gemini-2.5-flash
+
+  # ==========================================
+  # Inventory & Consumables Service
+  # ==========================================
+  - type: web
+    name: salon-inventory-service
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    rootDir: services/inventory-service
+    envVars:
+      - key: INVENTORY_PORT
+        value: 5007

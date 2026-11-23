@@ -1,8 +1,8 @@
 {
   "info": {
     "_postman_id": "salon-mgmt-collection-v1",
-    "name": "Salon Management System - Microservices API",
-    "description": "Comprehensive Postman collection for testing Salon Management System microservices via API Gateway or directly.",
+    "name": "SalonSync Platform - Microservices API Suite",
+    "description": "Comprehensive production Postman collection testing all 8 SalonSync microservices across 5 Core Business Scenarios via API Gateway.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -22,13 +22,13 @@
       "name": "1. Authentication (Supabase / Auth Service)",
       "item": [
         {
-          "name": "Register Customer / Stylist",
+          "name": "Register Customer / Stylist / Owner",
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"securePassword123!\",\n  \"fullName\": \"Jane Doe\",\n  \"role\": \"customer\",\n  \"phone\": \"+15550143\"\n}"
+              "raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"securePassword123!\",\n  \"fullName\": \"Jane Doe\",\n  \"role\": \"customer\",\n  \"phone\": \"+1-555-0143\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/register",
@@ -54,7 +54,7 @@
           }
         },
         {
-          "name": "Get Profile (Protected)",
+          "name": "Get Profile (Protected via JWT)",
           "request": {
             "method": "GET",
             "header": [
@@ -70,7 +70,7 @@
       ]
     },
     {
-      "name": "2. Catalog & Staff",
+      "name": "2. Catalog & Staff Master Data",
       "item": [
         {
           "name": "List All Services",
@@ -91,7 +91,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Balayage Hair Color Treatment\",\n  \"category\": \"Hair\",\n  \"durationMinutes\": 120,\n  \"price\": 140,\n  \"description\": \"Custom balayage highlight and toning\"\n}"
+              "raw": "{\n  \"name\": \"Balayage Hair Color Treatment\",\n  \"category\": \"Hair\",\n  \"durationMinutes\": 120,\n  \"price\": 140,\n  \"description\": \"Custom hand-painted balayage highlight and gloss\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/catalog/services",
@@ -101,7 +101,7 @@
           }
         },
         {
-          "name": "List Staff / Stylists",
+          "name": "List Staff & Artisans",
           "request": {
             "method": "GET",
             "header": [],
@@ -118,10 +118,14 @@
       "name": "3. Booking & Scheduling",
       "item": [
         {
-          "name": "List Appointments",
+          "name": "Create Appointment Booking",
           "request": {
-            "method": "GET",
-            "header": [],
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"Jane Doe\",\n  \"customerEmail\": \"customer@example.com\",\n  \"customerPhone\": \"+1-555-0143\",\n  \"serviceId\": \"srv_1\",\n  \"serviceName\": \"Classic Haircut & Styling\",\n  \"staffId\": \"stf_1\",\n  \"staffName\": \"Sarah Jenkins\",\n  \"appointmentDate\": \"2026-12-01T14:00:00.000Z\",\n  \"durationMinutes\": 45,\n  \"totalPrice\": 35,\n  \"notes\": \"Prefers warm blowout\"\n}"
+            },
             "url": {
               "raw": "{{baseUrl}}/api/bookings",
               "host": ["{{baseUrl}}"],
@@ -130,14 +134,10 @@
           }
         },
         {
-          "name": "Create Appointment",
+          "name": "Query Appointments",
           "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"customerName\": \"Jane Doe\",\n  \"customerEmail\": \"customer@example.com\",\n  \"customerPhone\": \"+15550143\",\n  \"serviceId\": \"srv_1\",\n  \"serviceName\": \"Classic Haircut & Styling\",\n  \"staffId\": \"stf_1\",\n  \"staffName\": \"Sarah Jenkins\",\n  \"appointmentDate\": \"2026-10-15T14:30:00.000Z\",\n  \"durationMinutes\": 45,\n  \"totalPrice\": 35,\n  \"notes\": \"Prefers warm rinse\"\n}"
-            },
+            "method": "GET",
+            "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/bookings",
               "host": ["{{baseUrl}}"],
@@ -155,25 +155,25 @@
               "raw": "{\n  \"status\": \"completed\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/bookings/apt_sample_1/status",
+              "raw": "{{baseUrl}}/api/bookings/{{bookingId}}/status",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "bookings", "apt_sample_1", "status"]
+              "path": ["api", "bookings", "{{bookingId}}", "status"]
             }
           }
         }
       ]
     },
     {
-      "name": "4. Payments & Billing",
+      "name": "4. Payment & Billing",
       "item": [
         {
-          "name": "Process Checkout Payment",
+          "name": "Process Deposit / Full Checkout",
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"appointmentId\": \"apt_sample_1\",\n  \"customerEmail\": \"customer@example.com\",\n  \"amount\": 35,\n  \"currency\": \"USD\",\n  \"paymentMethod\": \"card\"\n}"
+              "raw": "{\n  \"appointmentId\": \"apt_sample_1\",\n  \"customerEmail\": \"customer@example.com\",\n  \"amount\": 35.00,\n  \"paymentMethod\": \"card\",\n  \"currency\": \"USD\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/payments/checkout",
@@ -183,14 +183,30 @@
           }
         },
         {
-          "name": "Lookup Transactions for Appointment",
+          "name": "Global Financials Ledger",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/payments/transactions/apt_sample_1",
+              "raw": "{{baseUrl}}/api/payments/transactions",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "payments", "transactions", "apt_sample_1"]
+              "path": ["api", "payments", "transactions"]
+            }
+          }
+        },
+        {
+          "name": "Refund Transaction",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transactionId\": \"{{transactionId}}\",\n  \"reason\": \"Customer requested cancellation before 24hr window\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/payments/refund",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments", "refund"]
             }
           }
         }
@@ -206,7 +222,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"recipientEmail\": \"customer@example.com\",\n  \"recipientPhone\": \"+15550143\",\n  \"customerName\": \"Jane Doe\",\n  \"serviceName\": \"Classic Haircut & Styling\",\n  \"staffName\": \"Sarah Jenkins\",\n  \"appointmentDate\": \"2026-10-15 at 2:30 PM\"\n}"
+              "raw": "{\n  \"recipientEmail\": \"customer@example.com\",\n  \"recipientPhone\": \"+1-555-0143\",\n  \"customerName\": \"Jane Doe\",\n  \"serviceName\": \"Classic Haircut & Styling\",\n  \"staffName\": \"Sarah Jenkins\",\n  \"appointmentDate\": \"2026-12-01 at 2:00 PM\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/notifications/send-confirmation",
@@ -230,7 +246,7 @@
       ]
     },
     {
-      "name": "6. Gemini AI Assistant",
+      "name": "6. Gemini AI Assistant & Autonomous Agent",
       "item": [
         {
           "name": "Conversational Salon Assistant",
@@ -261,6 +277,95 @@
               "raw": "{{baseUrl}}/api/ai/parse-intent",
               "host": ["{{baseUrl}}"],
               "path": ["api", "ai", "parse-intent"]
+            }
+          }
+        },
+        {
+          "name": "Multi-Turn Tool Calling Orchestrator",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"What treatments are available in the catalog and check salon inventory?\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ai/agent",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ai", "agent"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Inventory & Consumables Tracking",
+      "item": [
+        {
+          "name": "Inventory Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "health"]
+            }
+          }
+        },
+        {
+          "name": "List Central Stock & Valuation",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory"]
+            }
+          }
+        },
+        {
+          "name": "Deduct Consumables Upon Checkout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appointmentId\": \"apt_sample_1\",\n  \"stylistName\": \"Sarah Jenkins\",\n  \"customerName\": \"Alice Walker\",\n  \"serviceName\": \"Classic Haircut & Styling\",\n  \"items\": [\n    { \"itemId\": \"inv_3\", \"quantity\": 15 }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/consume",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "consume"]
+            }
+          }
+        },
+        {
+          "name": "Restock Inventory Supplies",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"itemId\": \"inv_1\",\n  \"addedQuantity\": 500\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/restock",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "restock"]
+            }
+          }
+        },
+        {
+          "name": "View Consumables Audit Logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/logs",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "logs"]
             }
           }
         }

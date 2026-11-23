@@ -34,6 +34,7 @@ services:
       - PAYMENT_SERVICE_URL=http://payment-service:5004
       - NOTIFICATION_SERVICE_URL=http://notification-service:5005
       - AI_SERVICE_URL=http://ai-assistant-service:5006
+      - INVENTORY_SERVICE_URL=http://inventory-service:5007
     depends_on:
       - auth-service
       - booking-service
@@ -41,6 +42,7 @@ services:
       - payment-service
       - notification-service
       - ai-assistant-service
+      - inventory-service
     networks:
       - salon-network
 
@@ -150,6 +152,22 @@ services:
       - AI_PORT=5006
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}
+    networks:
+      - salon-network
+
+  # ---------------------------------------------
+  # Inventory & Consumables Tracking Service
+  # ---------------------------------------------
+  inventory-service:
+    build:
+      context: ./services/inventory-service
+      dockerfile: Dockerfile
+    container_name: salon_inventory_service
+    restart: unless-stopped
+    ports:
+      - "5007:5007"
+    environment:
+      - INVENTORY_PORT=5007
     networks:
       - salon-network
 
