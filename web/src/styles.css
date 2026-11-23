@@ -116,3 +116,118 @@
 
 
 
+
+/* ================= DEDICATED AUTH / SIGNUP SCREEN ================= */
+.auth-page-wrapper {
+  min-height: 100vh;
+  display: flex;
+  background: #f8f7f4;
+  width: 100%;
+}
+.auth-hero-banner {
+  flex: 1.1;
+  background: linear-gradient(145deg, #1f1b29 0%, #352f4c 55%, #242033 100%);
+  color: #fff;
+  padding: 56px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+.auth-hero-banner::before {
+  content: '';
+  position: absolute;
+  width: 450px;
+  height: 450px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(117,107,210,0.25) 0%, transparent 70%);
+  top: -120px;
+  right: -100px;
+  pointer-events: none;
+}
+.auth-hero-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.auth-hero-brand strong {
+  font-family: 'Playfair Display', serif;
+  font-size: 30px;
+  letter-spacing: .3px;
+}
+.auth-hero-brand span {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #bbb6c7;
+}
+.auth-hero-content {
+  max-width: 500px;
+  margin: 40px 0;
+}
+.auth-hero-content h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 40px;
+  font-weight: 500;
+  line-height: 1.25;
+  margin: 0 0 16px;
+  color: #fdfbf7;
+}
+.auth-hero-content h2 span {
+  color: #dfbd68;
+  font-style: italic;
+}
+.auth-hero-content p {
+  color: #b7b3c6;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0 0 32px;
+}
+.auth-features-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.auth-feature-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 13px;
+  color: #dedbe8;
+}
+.auth-feature-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: grid;
+  place-items: center;
+  color: #dfbd68;
+  flex-shrink: 0;
+}
+.auth-hero-footer {
+  font-size: 11px;
+  color: #8c869b;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding-top: 20px;
+}
+.auth-card-container {
+  width: 560px;
+  max-width: 100%;
+  padding: 44px 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #fff;
+  box-shadow: -12px 0 40px rgba(0,0,0,0.03);
+  overflow-y: auto;
+}
+@media (max-width: 950px) {
+  .auth-hero-banner { display: none; }
+  .auth-card-container { width: 100%; padding: 32px 24px; }
+}

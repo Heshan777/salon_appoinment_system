@@ -178,6 +178,25 @@ app.post('/api/bookings', async (req, res) => {
     }
 
     // In-memory mode
+    if (staffId && staffId !== 'any') {
+      const conflictWindowStart = new Date(requestedTime.getTime() - durationMinutes * 60000);
+      const conflictWindowEnd = new Date(requestedTime.getTime() + durationMinutes * 60000);
+
+      const existingConflict = fallbackAppointments.find(b => {
+        if (b.status === 'cancelled') return false;
+        if (b.staffId !== staffId && b.staffName !== staffName) return false;
+        const bDate = new Date(b.appointmentDate);
+        return bDate >= conflictWindowStart && bDate <= conflictWindowEnd;
+      });
+
+      if (existingConflict) {
+        return res.status(409).json({
+          error: 'Time slot conflict',
+          message: 'Selected staff already has an appointment scheduled around this time.'
+        });
+      }
+    }
+
     const newBooking = {
       _id: `apt_${Date.now()}`,
       customerName,
