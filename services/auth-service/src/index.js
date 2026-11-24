@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
+const mongoose = require('mongoose');
+const { User } = require('./models');
 const { supabase } = require('./supabaseClient');
 
 dotenv.config();
@@ -57,11 +59,30 @@ const localUsers = [
   { id: 'usr_legacy_3', email: 'client@luxesalon.com', password: 'client123', fullName: 'Alice Walker', role: 'customer', phone: '+1-555-0102', createdAt: new Date().toISOString() }
 ];
 
+const MONGODB_URI = process.env.MONGODB_AUTH_URI || (process.env.MONGODB_URI ? process.env.MONGODB_URI.replace(/\/[^/?]+(\?|$)/, '/salon_auth$1') : 'mongodb://localhost:27017/salon_auth');
+let isMongoConnected = false;
+
+mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 5000 })
+  .then(async () => {
+    isMongoConnected = true;
+    console.log('[Auth Service] Connected to dedicated MongoDB database (salon_auth).');
+    const count = await User.countDocuments();
+    if (count === 0) {
+      await User.insertMany(localUsers);
+      console.log('[Auth Service] Seeded demo users into salon_auth database.');
+    }
+  })
+  .catch((err) => {
+    isMongoConnected = false;
+    console.warn(`[Auth Service] MongoDB not reachable (${err.message}). Operating in local in-memory dataset.`);
+  });
+
 // Health Check
 app.get('/api/auth/health', (req, res) => {
   res.json({
     service: 'auth-service',
     status: 'healthy',
+    database: isMongoConnected ? 'mongodb:salon_auth' : (supabase ? 'supabase:postgres' : 'in-memory-fallback'),
     supabaseConnected: !!supabase,
     timestamp: new Date().toISOString()
   });

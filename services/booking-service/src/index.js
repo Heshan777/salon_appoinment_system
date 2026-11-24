@@ -35,16 +35,29 @@ const fallbackAppointments = [
   }
 ];
 
-// Connect to MongoDB Atlas / Local MongoDB
+// Connect to MongoDB Atlas / Local MongoDB (Dedicated salon_bookings DB)
 mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 5000 })
-  .then(() => {
+  .then(async () => {
     isMongoConnected = true;
-    console.log('[Booking Service] Connected to MongoDB Atlas/Database.');
+    console.log('[Booking Service] Connected to dedicated MongoDB database (salon_bookings).');
+    await seedBookingsIfEmpty();
   })
   .catch((err) => {
     isMongoConnected = false;
     console.warn(`[Booking Service] MongoDB not reachable (${err.message}). Using local in-memory dataset.`);
   });
+
+async function seedBookingsIfEmpty() {
+  try {
+    const count = await Appointment.countDocuments();
+    if (count === 0) {
+      await Appointment.insertMany(fallbackAppointments);
+      console.log('[Booking Service] Seeded demo appointments into salon_bookings.');
+    }
+  } catch (err) {
+    console.error('[Booking Service] Seeding error:', err.message);
+  }
+}
 
 // Health check
 app.get('/api/bookings/health', (req, res) => {

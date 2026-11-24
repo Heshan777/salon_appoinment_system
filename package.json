@@ -19,7 +19,8 @@
     "dev:notification": "npm --workspace=services/notification-service run dev",
     "dev:inventory": "npm --workspace=services/inventory-service run dev",
     "build:web": "npm --workspace=web run build",
-    "test": "node scripts/run-qa-suite.js"
+    "test": "node scripts/run-qa-suite.js",
+    "seed": "node scripts/seed-databases.js"
   },
   "keywords": [
     "microservices",
