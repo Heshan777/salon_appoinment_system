@@ -562,7 +562,11 @@ function App() {
             <span>•</span>
             <span>8 Distributed Services</span>
             <span>•</span>
-            <span>256-Bit SSL Secured</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <Lock size={12} color="#6257c3" /> 256-Bit SSL Encrypted
+            </span>
+            <span>•</span>
+            <span>JWT Cryptographic Verification</span>
           </div>
 
           <details style={{ marginTop: '16px', fontSize: '11px', color: '#8c869b', textAlign: 'center', cursor: 'pointer' }}>
@@ -2420,14 +2424,7 @@ function AuthCard({ initialTab = 'register', onClose, onAuthSuccess, isModal = f
               </div>
 
               <div className="auth-field-group">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <label>Account Role</label>
-                  {adminExists && (
-                    <span style={{ fontSize: '10px', color: '#b45309', background: '#fef3c7', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
-                      1 Owner Max
-                    </span>
-                  )}
-                </div>
+                <label>Account Role</label>
                 <select
                   className="auth-select"
                   value={role}
@@ -2597,10 +2594,6 @@ function AuthCard({ initialTab = 'register', onClose, onAuthSuccess, isModal = f
         )}
       </div>
 
-      <div className="auth-security-badge" style={{ marginTop: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '11px', color: '#9793a3', borderTop: '1px solid #ebe8f0', paddingTop: '14px' }}>
-        <Lock size={12} color="#756bd2" />
-        <span>256-Bit SSL Encrypted • JWT Cryptographic Verification</span>
-      </div>
     </div>
   );
 
