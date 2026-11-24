@@ -126,7 +126,11 @@ app.get('/api/inventory', async (req, res) => {
   try {
     let items = fallbackStockItems;
     if (isMongoConnected) {
-      items = await StockItem.find().lean();
+      const dbItems = await StockItem.find().lean();
+      items = dbItems.map(item => ({
+        ...item,
+        id: item.id || (item._id ? item._id.toString() : '')
+      }));
     }
 
     const lowStock = items.filter(item => item.quantity <= item.minThreshold);
@@ -158,12 +162,15 @@ app.post('/api/inventory/consume', async (req, res) => {
 
     if (isMongoConnected) {
       for (const logItem of items) {
-        const stock = await StockItem.findOne({
-          $or: [
-            { id: logItem.itemId },
-            { name: new RegExp(`^${logItem.name || ''}$`, 'i') }
-          ]
-        });
+        const queryOr = [{ id: logItem.itemId }];
+        if (logItem.itemId && mongoose.isValidObjectId(logItem.itemId)) {
+          queryOr.push({ _id: logItem.itemId });
+        }
+        if (logItem.name) {
+          queryOr.push({ name: new RegExp(`^${logItem.name}$`, 'i') });
+        }
+
+        const stock = await StockItem.findOne({ $or: queryOr });
 
         if (stock) {
           const deduction = Number(logItem.amountUsed) || 0;
@@ -173,7 +180,7 @@ app.post('/api/inventory/consume', async (req, res) => {
           await stock.save();
 
           processedItems.push({
-            itemId: stock.id,
+            itemId: stock.id || (stock._id ? stock._id.toString() : ''),
             name: stock.name,
             amountUsed: deduction,
             unit: stock.unit,
@@ -250,15 +257,23 @@ app.post('/api/inventory/restock', async (req, res) => {
 
   try {
     if (isMongoConnected) {
-      const target = await StockItem.findOne({ id: itemId });
+      const queryOr = [{ id: itemId }];
+      if (itemId && mongoose.isValidObjectId(itemId)) {
+        queryOr.push({ _id: itemId });
+      }
+      const target = await StockItem.findOne({ $or: queryOr });
       if (!target) {
         return res.status(404).json({ error: 'Inventory item not found' });
       }
       target.quantity += added;
       await target.save();
+      const targetObj = target.toObject ? target.toObject() : target;
+      if (!targetObj.id && targetObj._id) {
+        targetObj.id = targetObj._id.toString();
+      }
       return res.json({
         message: `Restocked ${target.name} by +${added} ${target.unit}`,
-        item: target
+        item: targetObj
       });
     }
 

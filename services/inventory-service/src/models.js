@@ -9,7 +9,7 @@ const StockItemSchema = new mongoose.Schema({
   minThreshold: { type: Number, required: true },
   unitCost: { type: Number, required: true },
   location: { type: String }
-});
+}, { id: false });
 
 const ConsumptionLogSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true, index: true },
@@ -28,7 +28,7 @@ const ConsumptionLogSchema = new mongoose.Schema({
   ],
   totalCost: { type: Number, required: true },
   timestamp: { type: Date, default: Date.now }
-});
+}, { id: false });
 
 const StockItem = mongoose.model('StockItem', StockItemSchema, 'stock_items');
 const ConsumptionLog = mongoose.model('ConsumptionLog', ConsumptionLogSchema, 'consumption_logs');

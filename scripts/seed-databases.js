@@ -282,7 +282,7 @@ async function seedDatabase(dbName, collections) {
   console.log(`  ✓ Connected to [${dbName}]`);
 
   for (const { name, data, schema } of collections) {
-    const Model = conn.model(name, schema || new mongoose.Schema({}, { strict: false }), name);
+    const Model = conn.model(name, schema || new mongoose.Schema({}, { strict: false, id: false }), name);
     await Model.deleteMany({});
     const res = await Model.insertMany(data);
     console.log(`  ✓ Seeded collection '${name}': ${res.length} documents inserted.`);
