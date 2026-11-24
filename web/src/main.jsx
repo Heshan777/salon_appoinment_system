@@ -556,28 +556,6 @@ function App() {
               isModal={false}
             />
           </div>
-
-          <div className="auth-simple-footer">
-            <span>ITS4243 Microservices Architecture</span>
-            <span>•</span>
-            <span>8 Distributed Services</span>
-            <span>•</span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-              <Lock size={12} color="#6257c3" /> 256-Bit SSL Encrypted
-            </span>
-            <span>•</span>
-            <span>JWT Cryptographic Verification</span>
-          </div>
-
-          <details style={{ marginTop: '16px', fontSize: '11px', color: '#8c869b', textAlign: 'center', cursor: 'pointer' }}>
-            <summary style={{ outline: 'none', userSelect: 'none' }}>Reference Credentials for Evaluator (Click to view)</summary>
-            <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap', color: '#6d6878', fontSize: '11px' }}>
-              <span>👑 <b>Owner:</b> <code>owner@glowsync.com</code> / <code>admin123</code></span>
-              <span>📋 <b>Desk:</b> <code>reception@glowsync.com</code> / <code>reception123</code></span>
-              <span>✂️ <b>Stylist:</b> <code>stylist@glowsync.com</code> / <code>stylist123</code></span>
-              <span>💎 <b>Client:</b> <code>client@glowsync.com</code> / <code>client123</code></span>
-            </div>
-          </details>
         </div>
         {toast && <div className="toast"><span>✓</span>{toast}</div>}
       </div>
