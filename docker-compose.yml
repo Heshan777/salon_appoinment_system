@@ -134,6 +134,9 @@ services:
       - "5005:5005"
     environment:
       - NOTIFICATION_PORT=5005
+      - MONGODB_NOTIFICATION_URI=mongodb://mongo:27017/salon_notifications
+    depends_on:
+      - mongo
     networks:
       - salon-network
 
@@ -168,6 +171,9 @@ services:
       - "5007:5007"
     environment:
       - INVENTORY_PORT=5007
+      - MONGODB_INVENTORY_URI=mongodb://mongo:27017/salon_inventory
+    depends_on:
+      - mongo
     networks:
       - salon-network
 

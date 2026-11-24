@@ -11,16 +11,16 @@
 
 ### Microservices Topology (8 Decoupled Services)
 
-| Microservice | Port | Primary Responsibility | Architecture / Datastore |
+| Microservice | Port | Primary Responsibility | Architecture / Dedicated Datastore |
 | :--- | :---: | :--- | :--- |
-| **API Gateway** | `5000` | Unified entry point, reverse proxy, rate limiting, request correlation & SPA static serving | Express / `http-proxy-middleware` / Helmet |
-| **Auth Service** | `5001` | JWT identity management & RBAC for 4 Target Actors (Client, Stylist, Desk, Owner) | **Supabase** / Cryptographic JWT |
-| **Booking Service** | `5002` | Appointment scheduling, calendar reservation & real-time conflict prevention engine | **MongoDB Atlas** (`salon_bookings`) |
-| **Catalog Service** | `5003` | Treatment catalog, pricing master data, and staff shift rosters | **MongoDB Atlas** (`salon_catalog`) |
-| **Payment Service** | `5004` | Advance deposits, transaction ledger, and refund engine | In-memory ledger / Stripe-ready |
-| **Notification Service** | `5005` | Real-time SMS & Email dispatch for booking events and reminders | Asynchronous Event Dispatcher |
-| **AI Assistant / Agent** | `5006` | Autonomous conversational concierge & multi-turn tool calling | **Google Gemini AI** (`gemini-2.5-flash`) |
-| **Inventory Service** | `5007` | Stock management, low-supply alerts & treatment consumables deduction | Central Warehouse Ledger |
+| **API Gateway** | `5000` | Unified reverse proxy, rate limiting, request correlation & SPA static serving | Express / `http-proxy-middleware` / Helmet / Distributed Tracing |
+| **Auth Service** | `5001` | JWT identity management & singleton owner constraint | **Supabase (PostgreSQL)** (`salon_auth` / profiles & RBAC) |
+| **Booking Service** | `5002` | Appointment scheduling, calendar reservation & conflict prevention | **MongoDB Atlas** (`salon_bookings` / `appointments` collection) |
+| **Catalog Service** | `5003` | Treatment catalog, pricing master data, and staff shift rosters | **MongoDB Atlas** (`salon_catalog` / `services` & `staff` collections) |
+| **Payment Service** | `5004` | Advance deposits, digital receipts, and refund engine | **MongoDB Atlas** (`salon_payments` / `transactions` collection) |
+| **Notification Service** | `5005` | Real-time SMS & Email dispatch for booking events and reminders | **MongoDB Atlas** (`salon_notifications` / `dispatch_logs` collection) |
+| **AI Assistant / Agent** | `5006` | Autonomous conversational concierge & multi-turn tool calling | **Google Gemini Cloud AI** (`gemini-2.5-flash` + context cache) |
+| **Inventory Service** | `5007` | Stock management, low-supply alerts & consumables deduction | **MongoDB Atlas** (`salon_inventory` / `stock_items` & `consumption_logs`) |
 
 ---
 
@@ -53,11 +53,26 @@
  ┌──────────────┐ ┌──────────────┐ ┌────────────────┐ ┌────────────────┐ ┌────────────────────┐ ┌──────────────┐ ┌───────────────┐
  │ Auth Service │ │Booking Svc   │ │Catalog Service │ │Payment Service │ │Notification Service│ │AI Assistant  │ │Inventory Svc  │
  │   (:5001)    │ │   (:5002)    │ │    (:5003)     │ │    (:5004)     │ │      (:5005)       │ │   (:5006)    │ │    (:5007)    │
- └──────┬───────┘ └──────┬───────┘ └────────┬───────┘ └────────────────┘ └────────────────────┘ └──────┬───────┘ └───────────────┘
-        │                │                  │                                                           │
-   [Supabase]     [MongoDB Atlas]    [MongoDB Atlas]                                              [Google Gemini]
-   Auth/Postgres  `salon_bookings`   `salon_catalog`                                              AI Model APIs
+ └──────┬───────┘ └──────┬───────┘ └────────┬───────┘ └────────┬───────┘ └─────────┬──────────┘ └──────┬───────┘ └───────┬───────┘
+        │                │                  │                  │                   │                   │                 │
+        ▼                ▼                  ▼                  ▼                   ▼                   ▼                 ▼
+   [Supabase]     [MongoDB Atlas]    [MongoDB Atlas]    [MongoDB Atlas]     [MongoDB Atlas]     [Google Gemini]   [MongoDB Atlas]
+  Postgres DB     `salon_bookings`   `salon_catalog`    `salon_payments`    `salon_notifs`       Cloud AI Cache   `salon_inventory`
+ (Users & RBAC)    (Appointments)     (Treatments)        (Transactions)     (Dispatch Logs)      (Intent Memory)   (Stock & Supplies)
 ```
+
+### 🗄️ Database-per-Service Pattern (Decoupled Polyglot Persistence)
+In strict alignment with the **Database-per-Service** design pattern required for enterprise microservices architectures:
+1. **Zero Cross-Service Database Coupling**: No microservice is permitted to access another service's database directly. All cross-domain collaboration occurs exclusively via well-defined RESTful HTTP APIs orchestrated through the API Gateway.
+2. **Polyglot Persistence**: Datastores are specialized according to the computational and domain needs of each microservice:
+   - **Auth Service**: Relational **PostgreSQL / Supabase** for user credentials, cryptographic salts, and role-based access control (RBAC).
+   - **Booking Service**: Document-oriented **MongoDB Atlas** (`salon_bookings`) for dynamic appointment scheduling and calendar conflict indexing.
+   - **Catalog Service**: Document-oriented **MongoDB Atlas** (`salon_catalog`) for high-throughput read operations across salon treatments and specialist schedules.
+   - **Payment Service**: Transactional **MongoDB Atlas** (`salon_payments`) maintaining an immutable financial ledger and refund audit trail.
+   - **Notification Service**: Event-driven **MongoDB Atlas** (`salon_notifications`) recording customer dispatch telemetry (SMS/Email logs).
+   - **Inventory Service**: Warehouse ledger **MongoDB Atlas** (`salon_inventory`) tracking real-time consumable levels and deduct-on-service events.
+   - **AI Assistant**: Stateless **Google Gemini 2.5 Flash** orchestrator utilizing ephemeral conversational context memory.
+3. **Resilient Local Fallback Engine**: Every microservice incorporates an automated circuit-breaker fallback. If a cloud database connection is temporarily interrupted, the service automatically serves local mock/in-memory records to guarantee 100% uptime without cascading system failures.
 
 ---
 
