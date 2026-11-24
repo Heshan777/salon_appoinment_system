@@ -136,6 +136,33 @@ async function runQA() {
     record('Auth Service', 'Seeded Demo Profile', false, err.message);
   }
 
+  // 2.6 Admin Status Check (Single Admin Rule)
+  try {
+    const res = await request('/api/auth/admin-status');
+    const passed = res.status === 200 && res.data?.adminExists === true;
+    record('Auth Service', 'Admin Status Inquiry (GET /api/auth/admin-status)', passed, `Admin Exists: ${res.data?.adminExists}`);
+  } catch (err) {
+    record('Auth Service', 'Admin Status Inquiry', false, err.message);
+  }
+
+  // 2.7 Block Duplicate Admin Registration (Single Admin Rule)
+  try {
+    const res = await request('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({
+        fullName: 'Second Admin Attempt',
+        email: `second_admin_${Date.now()}@glowsync.com`,
+        password: 'Password123!',
+        role: 'admin',
+        phone: '+1-555-9999'
+      })
+    });
+    const passed = res.status === 400 && res.data?.error?.includes('Only one owner account');
+    record('Auth Service', 'Duplicate Admin Registration Blocked (HTTP 400)', passed, res.data?.error || `HTTP ${res.status}`);
+  } catch (err) {
+    record('Auth Service', 'Duplicate Admin Registration Blocked', false, err.message);
+  }
+
   // -----------------------------------------------------------
   // SUITE 3: CATALOG & SERVICES AUDIT
   // -----------------------------------------------------------

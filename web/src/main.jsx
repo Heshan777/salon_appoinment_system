@@ -2270,6 +2270,22 @@ function AuthCard({ initialTab = 'register', onClose, onAuthSuccess, isModal = f
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [infoNote, setInfoNote] = useState('');
+  const [adminExists, setAdminExists] = useState(false);
+
+  // Check whether a Salon Owner / Admin account already exists (Single Admin Rule)
+  useEffect(() => {
+    let active = true;
+    fetch(`${API}/api/auth/admin-status`)
+      .then(res => res.json())
+      .then(data => {
+        if (active && data && data.adminExists) {
+          setAdminExists(true);
+          setRole(prev => (prev === 'admin' ? 'customer' : prev));
+        }
+      })
+      .catch(() => {});
+    return () => { active = false; };
+  }, []);
 
   const switchTab = (nextTab) => {
     setTab(nextTab);
@@ -2283,6 +2299,10 @@ function AuthCard({ initialTab = 'register', onClose, onAuthSuccess, isModal = f
     setInfoNote('');
 
     if (tab === 'register') {
+      if (role === 'admin' && adminExists) {
+        setError('A Salon Owner / Administrator account already exists. Only one owner account can be created.');
+        return;
+      }
       if (password.length < 6) {
         setError('Password must be at least 6 characters long.');
         return;
@@ -2400,7 +2420,14 @@ function AuthCard({ initialTab = 'register', onClose, onAuthSuccess, isModal = f
               </div>
 
               <div className="auth-field-group">
-                <label>Account Role</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <label>Account Role</label>
+                  {adminExists && (
+                    <span style={{ fontSize: '10px', color: '#b45309', background: '#fef3c7', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                      1 Owner Max
+                    </span>
+                  )}
+                </div>
                 <select
                   className="auth-select"
                   value={role}
@@ -2409,7 +2436,13 @@ function AuthCard({ initialTab = 'register', onClose, onAuthSuccess, isModal = f
                   <option value="customer">Client (Book & Pay)</option>
                   <option value="stylist">Stylist (Roster & Treatment)</option>
                   <option value="receptionist">Receptionist (Walk-ins & POS)</option>
-                  <option value="admin">Owner / Admin (Catalogs & Analytics)</option>
+                  {!adminExists ? (
+                    <option value="admin">Owner / Admin (Catalogs & Analytics)</option>
+                  ) : (
+                    <option value="admin" disabled style={{ color: '#aaa', fontStyle: 'italic' }}>
+                      Owner / Admin (Already Registered — 1 Max)
+                    </option>
+                  )}
                 </select>
               </div>
             </div>

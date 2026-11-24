@@ -67,6 +67,29 @@ app.get('/api/auth/health', (req, res) => {
   });
 });
 
+// Admin Status (Single Admin / Owner Constraint)
+app.get('/api/auth/admin-status', async (req, res) => {
+  try {
+    let admin = localUsers.find(u => u.role === 'admin');
+    if (!admin && supabase) {
+      try {
+        const { data } = await supabase.from('profiles').select('id, email, fullName').eq('role', 'admin').limit(1);
+        if (data && data.length > 0) {
+          admin = data[0];
+        }
+      } catch (e) {}
+    }
+    res.json({
+      adminExists: !!admin,
+      message: admin 
+        ? 'A Salon Owner / Administrator account is already registered.' 
+        : 'No admin account registered yet. Salon owner registration is open.'
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Register
 app.post('/api/auth/register', async (req, res) => {
   const { email, password, fullName, role = 'customer', phone } = req.body;
@@ -77,6 +100,25 @@ app.post('/api/auth/register', async (req, res) => {
 
   if (password.length < 6) {
     return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+  }
+
+  // Enforce Single Owner / Administrator Constraint: only 1 admin account permitted
+  if (role === 'admin') {
+    let adminAlreadyExists = localUsers.some(u => u.role === 'admin');
+    if (!adminAlreadyExists && supabase) {
+      try {
+        const { data } = await supabase.from('profiles').select('id').eq('role', 'admin').limit(1);
+        if (data && data.length > 0) {
+          adminAlreadyExists = true;
+        }
+      } catch (e) {}
+    }
+
+    if (adminAlreadyExists) {
+      return res.status(400).json({
+        error: 'A Salon Owner / Administrator account already exists. Only one owner account can be created.'
+      });
+    }
   }
 
   try {
