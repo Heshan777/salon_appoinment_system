@@ -1,10 +1,5 @@
 # 💈 SalonSync – Cloud-Native Salon Appointment & Resource Management Platform
-### ITS4243 – Microservices and Cloud Computing | Assignment 01
-**Student Index Numbers:** `ICT/22/946` | `ICT/22/941` | `ICT/22/846`  
-**Domain:** Beauty and Personal Care Services  
-**Deployment Status:** ✅ **Production Ready** (Containerized • CI/CD Verified • 100% QA Pass)
 
----
 
 ## 📖 Executive Summary & Academic Alignment
 **SalonSync** is a production-grade, distributed microservices platform deployed to cloud infrastructure. Built to eliminate double-bookings, manual phone scheduling chaos, and fragmented financial reconciliation in modern beauty salons and spas, the system implements a decoupled cloud-native architecture with an API Gateway, real-time database persistence (MongoDB Atlas & Supabase), cryptographic JWT access controls, central inventory consumables tracking, and autonomous AI scheduling powered by **Google Gemini**.
