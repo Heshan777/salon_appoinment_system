@@ -59,10 +59,13 @@ services:
       - "5001:5001"
     environment:
       - AUTH_PORT=5001
+      - MONGODB_AUTH_URI=mongodb://mongo:27017/salon_auth
       - SUPABASE_URL=${SUPABASE_URL:-}
       - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY:-}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY:-}
       - JWT_SECRET=${JWT_SECRET:-salon_dev_jwt_secret}
+    depends_on:
+      - mongo
     networks:
       - salon-network
 
@@ -117,7 +120,10 @@ services:
       - "5004:5004"
     environment:
       - PAYMENT_PORT=5004
+      - MONGODB_PAYMENT_URI=mongodb://mongo:27017/salon_payments
       - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-}
+    depends_on:
+      - mongo
     networks:
       - salon-network
 
